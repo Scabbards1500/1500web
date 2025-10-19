@@ -1,11 +1,9 @@
+// next.config.mjs  —— Vercel 版（最简）
 /** @type {import('next').NextConfig} */
-const repo = "1500web";
-const isProd = process.env.NODE_ENV === "production";
-
-export default {
-  output: "export",               // 关键：导出静态站到 out/
-  images: { unoptimized: true },  // 兼容 GH Pages
-  basePath: isProd ? `/${repo}` : undefined,
-  assetPrefix: isProd ? `/${repo}/` : undefined,
-  trailingSlash: true,
+const config = {
+  // 不要 output:'export'
+  // 不要 basePath / assetPrefix
+  // 如需图片优化，保持默认（不设置 images.unoptimized）
 };
+
+export default config;
