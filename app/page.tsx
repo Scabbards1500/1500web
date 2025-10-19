@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 // 获取基础路径，用于 GitHub Pages 部署
-const basePath = process.env.NODE_ENV === 'production' ? '/1500web/public' : '';
+const basePath = process.env.NODE_ENV === 'production' ? '' : '';
 
 export default function Home() {
   return (
