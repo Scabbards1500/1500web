@@ -1,106 +1,86 @@
-import Image from "next/image";
-
-// 获取基础路径，用于 GitHub Pages 部署
-const basePath = process.env.NODE_ENV === 'production' ? '' : '';
+import Link from "next/link";
+import SiteLayout from "@/components/SiteLayout";
+import PostList from "@/components/PostList";
+import { getPosts } from "@/lib/posts";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src={`${basePath}/next.svg`}
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const posts = getPosts();
+  const featuredPosts = posts.slice(0, 2);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  return (
+    <SiteLayout active="Homepage">
+      <section className="mx-auto flex max-w-4xl flex-col gap-6 px-6 pt-12 md:px-12">
+        <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">
+          Welcome
+        </span>
+        <h2 className="text-4xl font-semibold text-slate-900">你好，我是 Hanling Wang</h2>
+        <p className="text-base leading-7 text-slate-600">
+          专注于传感网络、机器学习与城市韧性研究，热衷将前沿算法落地到真实场景中。
+          这里记录我的研究动态、实习经历与项目背后的故事。
+        </p>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <Link
+            href="/publication"
+            className="rounded-full bg-slate-900 px-5 py-2 text-white transition hover:bg-slate-700"
           >
-            <Image
-              className="dark:invert"
-              src={`${basePath}/vercel.svg`}
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            查看全部成果
+          </Link>
+          <Link
+            href="/gallery"
+            className="rounded-full border border-slate-300 px-5 py-2 text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
           >
-            Read our docs
-          </a>
+            浏览影像记忆
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src={`${basePath}/file.svg`}
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src={`${basePath}/window.svg`}
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src={`${basePath}/globe.svg`}
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      <section className="mx-auto flex max-w-4xl flex-col gap-6 px-6 pt-16 md:px-12">
+        <header className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-semibold text-slate-900">最新项目摘录</h3>
+            <Link href="/publication" className="text-sm font-semibold text-slate-500 hover:text-slate-900">
+              查看更多
+            </Link>
+          </div>
+          <p className="text-sm text-slate-500">
+            以下内容来自 `content/posts` 目录下的 Markdown 文件，可按文件夹扩展。
+          </p>
+        </header>
+
+        <PostList posts={featuredPosts} />
+      </section>
+
+      <section className="mx-auto grid max-w-4xl gap-6 px-6 py-16 md:grid-cols-3 md:px-12">
+        <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-6">
+          <h4 className="text-lg font-semibold text-slate-900">Publication</h4>
+          <p className="text-sm text-slate-600">
+            系统整理论文、项目报告与典型案例分析，按年份归档检索。
+          </p>
+          <Link href="/publication" className="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-900">
+            进入页面 →
+          </Link>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-6">
+          <h4 className="text-lg font-semibold text-slate-900">Internship</h4>
+          <p className="text-sm text-slate-600">
+            汇总科研与企业合作经历，梳理关键成果与经验收获。
+          </p>
+          <Link href="/internship" className="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-900">
+            进入页面 →
+          </Link>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-6">
+          <h4 className="text-lg font-semibold text-slate-900">Gallery</h4>
+          <p className="text-sm text-slate-600">
+            记录实验现场、展览与旅途瞬间，展示不同维度的故事。
+          </p>
+          <Link href="/gallery" className="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-900">
+            进入页面 →
+          </Link>
+        </div>
+      </section>
+    </SiteLayout>
   );
 }
