@@ -109,7 +109,7 @@ function readMarkdownCollection(baseDir: string): Post[] {
     .readdirSync(baseDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory());
 
-  const posts: Post[] = directories
+  const posts = directories
     .map((dir) => {
       const folderPath = path.join(baseDir, dir.name);
       const markdownFile = fs
@@ -123,24 +123,37 @@ function readMarkdownCollection(baseDir: string): Post[] {
       const fileContent = fs.readFileSync(path.join(folderPath, markdownFile), "utf-8");
       const { data, content } = parseFrontMatter(fileContent);
 
-      return {
+      const post: Post = {
         slug: dir.name,
         title: typeof data.title === "string" ? data.title : dir.name,
-        subtitle: typeof data.subtitle === "string" ? data.subtitle : undefined,
-        date: typeof data.date === "string" ? data.date : undefined,
-        image: typeof data.image === "string" ? data.image : undefined,
-        summary: typeof data.summary === "string" ? data.summary : undefined,
-        links: typeof data.links === "object" && data.links !== null ? (data.links as Record<string, string>) : undefined,
         content,
       };
+
+      if (typeof data.subtitle === "string") {
+        post.subtitle = data.subtitle;
+      }
+      if (typeof data.date === "string") {
+        post.date = data.date;
+      }
+      if (typeof data.image === "string") {
+        post.image = data.image;
+      }
+      if (typeof data.summary === "string") {
+        post.summary = data.summary;
+      }
+      if (typeof data.links === "object" && data.links !== null) {
+        post.links = data.links as Record<string, string>;
+      }
+
+      return post;
     })
-    .filter((post): post is Post => post !== null)
+    .filter((post) => post !== null)
     .sort((a, b) => {
       if (!a.date || !b.date) return 0;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
-  return posts;
+  return posts as Post[];
 }
 
 export function getPosts(): Post[] {
