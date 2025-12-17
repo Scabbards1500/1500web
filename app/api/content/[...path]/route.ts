@@ -4,10 +4,11 @@ import path from "path";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
-    const filePath = path.join(process.cwd(), "content", ...params.path);
+    const { path: pathArray } = await params;
+    const filePath = path.join(process.cwd(), "content", ...pathArray);
     
     // 安全检查：确保路径在 content 目录内
     const contentDir = path.join(process.cwd(), "content");

@@ -49,9 +49,7 @@ export default function SiteLayout({ children, active }: SiteLayoutProps) {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`transition-colors hover:text-slate-900 ${
-                  item.emphasis ? "text-lg font-semibold text-slate-900" : "text-slate-500"
-                }`}
+                className="transition-colors text-slate-500 hover:text-slate-900"
               >
                 {item.label}
               </Link>
