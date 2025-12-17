@@ -16,7 +16,7 @@ export default function PublicationContent({ posts }: PublicationContentProps) {
     <>
       <KeywordFilter posts={posts} onFilterChange={setFilteredPosts} />
 
-      <section className="mx-auto max-w-4xl px-6 pt-12 md:px-12 min-h-[calc(100vh-300px)]">
+      <section className="mx-auto max-w-5xl px-6 pt-12 md:px-12 min-h-[calc(100vh-300px)]">
         <PostList posts={filteredPosts} />
       </section>
     </>

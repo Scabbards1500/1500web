@@ -6,15 +6,12 @@ export default function PublicationPage() {
   const posts = getPosts();
 
   return (
-    <SiteLayout active="Publication">
-      <section className="mx-auto flex max-w-4xl flex-col gap-4 px-6 pt-12 md:px-12">
+    <SiteLayout active="Research">
+      <section className="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-12 md:px-12">
         <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">
-          Reseach
+          Research
         </span>
-        <h2 className="text-3xl font-semibold text-slate-900">Publication</h2>
-        <p className="text-sm text-slate-600">
-          Large Language Model, Model Reasoning, Natural Language Processing, Computer Vision.
-        </p>
+        <h2 className="text-3xl font-semibold text-slate-900">Research</h2>
       </section>
 
       <PublicationContent posts={posts} />

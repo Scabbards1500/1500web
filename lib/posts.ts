@@ -12,6 +12,7 @@ export type PostMeta = {
   keywords?: string[];
   links?: Record<string, string>;
   highlights?: string[];
+  status?: string;
 };
 
 export type Post = PostMeta & {
@@ -192,6 +193,9 @@ function readMarkdownCollection(baseDir: string): Post[] {
       }
       if (typeof data.links === "object" && data.links !== null) {
         post.links = data.links as Record<string, string>;
+      }
+      if (typeof data.status === "string") {
+        post.status = data.status;
       }
 
       return post;

@@ -119,7 +119,6 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
                     {new Date(post.date).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "short",
-                      day: "numeric",
                     })}
                   </span>
                 )}
@@ -148,17 +147,36 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
 
               <div className="space-y-4">{renderMarkdown(post.content, post.slug, contentType, handleImageClick)}</div>
 
-              {post.links && (
+              {(post.links || post.status) && (
                 <div className="flex flex-wrap gap-3 pt-2 text-sm font-medium">
-                  {Object.entries(post.links).map(([key, url]) => (
-                    <Link
-                      key={key}
-                      href={url}
-                      className="rounded-full border border-slate-300 px-3 py-1 capitalize text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
-                    >
-                      {key}
-                    </Link>
-                  ))}
+                  {post.links &&
+                    Object.entries(post.links).map(([key, url]) => (
+                      <Link
+                        key={key}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-slate-300 px-3 py-1 capitalize text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+                      >
+                        {key}
+                      </Link>
+                    ))}
+                  {post.status && (() => {
+                    const statusLower = post.status.toLowerCase();
+                    let statusClassName = "rounded-full border border-slate-300 px-3 py-1 text-slate-600";
+                    
+                    if (statusLower.includes("under review")) {
+                      statusClassName = "rounded-full border border-yellow-400 bg-yellow-50 px-3 py-1 text-yellow-700";
+                    } else if (statusLower.includes("accepted")) {
+                      statusClassName = "rounded-full border border-green-400 bg-green-50 px-3 py-1 text-green-700";
+                    }
+                    
+                    return (
+                      <span className={statusClassName}>
+                        {post.status}
+                      </span>
+                    );
+                  })()}
                 </div>
               )}
             </div>

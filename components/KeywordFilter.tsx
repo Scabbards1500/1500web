@@ -9,15 +9,25 @@ type KeywordFilterProps = {
 };
 
 export default function KeywordFilter({ posts, onFilterChange }: KeywordFilterProps) {
-  // 提取所有唯一的 keywords
+  // 提取所有唯一的 keywords，并按出现频率排序
   const allKeywords = useMemo(() => {
-    const keywordSet = new Set<string>();
+    const keywordCount = new Map<string, number>();
     posts.forEach((post) => {
       if (post.keywords) {
-        post.keywords.forEach((keyword) => keywordSet.add(keyword));
+        post.keywords.forEach((keyword) => {
+          keywordCount.set(keyword, (keywordCount.get(keyword) || 0) + 1);
+        });
       }
     });
-    return Array.from(keywordSet).sort();
+    // 按频率从高到低排序，频率相同时按字母顺序排序
+    return Array.from(keywordCount.entries())
+      .sort((a, b) => {
+        if (b[1] !== a[1]) {
+          return b[1] - a[1]; // 频率高的在前
+        }
+        return a[0].localeCompare(b[0]); // 频率相同时按字母顺序
+      })
+      .map(([keyword]) => keyword);
   }, [posts]);
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
@@ -63,9 +73,8 @@ export default function KeywordFilter({ posts, onFilterChange }: KeywordFilterPr
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-6 pt-6 md:px-12">
+    <section className="mx-auto max-w-5xl px-6 pt-6 md:px-12">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-sm font-medium text-slate-700">Keyword:</span>
         {allKeywords.map((keyword) => (
           <button
             key={keyword}
