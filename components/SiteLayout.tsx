@@ -6,12 +6,10 @@ const navItems = [
   { label: "Homepage", href: "/" },
   { label: "Publication", href: "/publication" },
   { label: "Internship", href: "/internship" },
-  { label: "Gallery", href: "/gallery" },
   { label: "Notes", href: "/notes" },
 ];
 
 const socialLinks = [
-  { label: "Scabbards", href: "#", emphasis: true },
   { label: "Github", href: "https://github.com/" },
   { label: "LinkedIn", href: "https://www.linkedin.com/" },
   { label: "Google Scholar", href: "https://scholar.google.com/" },
@@ -39,9 +37,9 @@ export default function SiteLayout({ children, active }: SiteLayoutProps) {
               />
             </div>
             <div className="text-center">
-              <h1 className="text-xl font-semibold text-slate-900">Scabbards</h1>
+              <h1 className="text-xl font-semibold text-slate-900">Hanling Wang</h1>
               <p className="mt-2 text-sm text-slate-500">
-                科研爱好者，关注传感、机器学习与城市韧性建设。
+                scaaabbards@gmail.com
               </p>
             </div>
           </div>

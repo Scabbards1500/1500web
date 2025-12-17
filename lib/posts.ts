@@ -5,9 +5,13 @@ export type PostMeta = {
   title: string;
   subtitle?: string;
   date?: string;
+  period?: string;
   image?: string;
   summary?: string;
+  author?: string;
+  keywords?: string[];
   links?: Record<string, string>;
+  highlights?: string[];
 };
 
 export type Post = PostMeta & {
@@ -16,10 +20,10 @@ export type Post = PostMeta & {
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
-const POSTS_DIR = path.join(CONTENT_DIR, "posts");
+
 
 type FrontMatterResult = {
-  data: Record<string, string | Record<string, string>>;
+  data: Record<string, string | Record<string, string> | string[]>;
   content: string;
 };
 
@@ -31,7 +35,7 @@ function parseFrontMatter(markdown: string): FrontMatterResult {
   }
 
   const [, frontMatterBlock, body] = frontMatterMatch;
-  const data: Record<string, string | Record<string, string>> = {};
+  const data: Record<string, string | Record<string, string> | string[]> = {};
   const lines = frontMatterBlock.split("\n");
 
   let index = 0;
@@ -54,8 +58,38 @@ function parseFrontMatter(markdown: string): FrontMatterResult {
     const value = valueParts.join(":").trim();
 
     if (!value) {
-      // 处理缩进嵌套对象
+      // 检查是否是数组（以 - 开头）
       index += 1;
+      if (index < lines.length) {
+        const firstNestedLine = lines[index];
+        const firstTrimmed = firstNestedLine.trim();
+        if (firstTrimmed.startsWith("-")) {
+          // 处理数组
+          const array: string[] = [];
+          while (index < lines.length) {
+            const arrayLine = lines[index];
+            const arrayTrimmed = arrayLine.trim();
+            
+            // 如果下一行不是缩进的数组项，则停止
+            if (!arrayLine.startsWith("  ") && !arrayTrimmed.startsWith("-")) {
+              break;
+            }
+
+            if (arrayTrimmed.startsWith("-")) {
+              const arrayValue = arrayTrimmed.substring(1).trim();
+              if (arrayValue) {
+                array.push(arrayValue.replace(/^['"]|['"]$/g, ""));
+              }
+            }
+
+            index += 1;
+          }
+          data[key] = array;
+          continue;
+        }
+      }
+
+      // 处理缩进嵌套对象
       const nested: Record<string, string> = {};
 
       while (index < lines.length) {
@@ -141,6 +175,21 @@ function readMarkdownCollection(baseDir: string): Post[] {
       if (typeof data.summary === "string") {
         post.summary = data.summary;
       }
+      if (typeof data.author === "string") {
+        post.author = data.author;
+      }
+      if (typeof data.period === "string") {
+        post.period = data.period;
+      }
+      if (typeof data.keywords === "string") {
+        // 支持分号分隔的字符串格式
+        post.keywords = data.keywords.split(";").map((k) => k.trim()).filter(Boolean);
+      } else if (Array.isArray(data.keywords)) {
+        post.keywords = data.keywords as string[];
+      }
+      if (Array.isArray(data.highlights)) {
+        post.highlights = data.highlights as string[];
+      }
       if (typeof data.links === "object" && data.links !== null) {
         post.links = data.links as Record<string, string>;
       }
@@ -156,13 +205,21 @@ function readMarkdownCollection(baseDir: string): Post[] {
   return posts as Post[];
 }
 
+
+
 export function getPosts(): Post[] {
+  const POSTS_DIR = path.join(CONTENT_DIR, "research");
   return readMarkdownCollection(POSTS_DIR);
 }
 
 export function getNotes(): Post[] {
   const notesDir = path.join(CONTENT_DIR, "notes");
   return readMarkdownCollection(notesDir);
+}
+
+export function getInternships(): Post[] {
+  const internshipsDir = path.join(CONTENT_DIR, "internship");
+  return readMarkdownCollection(internshipsDir);
 }
 
 
