@@ -12,6 +12,9 @@ export default function PublicationPage() {
           Research
         </span>
         <h2 className="text-3xl font-semibold text-slate-900">Research</h2>
+         <p className="text-sm text-slate-600">
+          *Unpublished Paper Only Avalailable During Application.
+         </p>
       </section>
 
       <PublicationContent posts={posts} />

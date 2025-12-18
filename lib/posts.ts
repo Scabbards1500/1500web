@@ -18,6 +18,7 @@ export type PostMeta = {
 export type Post = PostMeta & {
   slug: string;
   content: string;
+  contentType?: string;
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
@@ -213,17 +214,41 @@ function readMarkdownCollection(baseDir: string): Post[] {
 
 export function getPosts(): Post[] {
   const POSTS_DIR = path.join(CONTENT_DIR, "research");
-  return readMarkdownCollection(POSTS_DIR);
+  const posts = readMarkdownCollection(POSTS_DIR);
+  return posts.map(post => ({ ...post, contentType: "research" }));
 }
 
 export function getNotes(): Post[] {
   const notesDir = path.join(CONTENT_DIR, "notes");
-  return readMarkdownCollection(notesDir);
+  const posts = readMarkdownCollection(notesDir);
+  return posts.map(post => ({ ...post, contentType: "notes" }));
 }
 
 export function getInternships(): Post[] {
   const internshipsDir = path.join(CONTENT_DIR, "internship");
-  return readMarkdownCollection(internshipsDir);
+  const posts = readMarkdownCollection(internshipsDir);
+  return posts.map(post => ({ ...post, contentType: "internship" }));
+}
+
+export function getAwards(): Post[] {
+  const awardsDir = path.join(CONTENT_DIR, "awards");
+  const posts = readMarkdownCollection(awardsDir);
+  return posts.map(post => ({ ...post, contentType: "awards" }));
+}
+
+export function getAllPosts(): Post[] {
+  const allPosts = [
+    ...getPosts(),
+    ...getInternships(),
+    ...getAwards(),
+    ...getNotes(),
+  ];
+  
+  // 按日期排序（最新的在前）
+  return allPosts.sort((a, b) => {
+    if (!a.date || !b.date) return 0;
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 }
 
 

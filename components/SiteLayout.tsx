@@ -6,6 +6,7 @@ const navItems = [
   { label: "Homepage", href: "/" },
   { label: "Research", href: "/publication" },
   { label: "Internship", href: "/internship" },
+  { label: "Awards", href: "/awards" },
   { label: "Notes", href: "/notes" },
 ];
 
@@ -13,6 +14,8 @@ const socialLinks = [
   { label: "Github", href: "https://github.com/" },
   { label: "LinkedIn", href: "https://www.linkedin.com/" },
   { label: "Google Scholar", href: "https://scholar.google.com/" },
+  { label: "Blog", href: "https://blog.csdn.net/Scabbards_?spm=1000.2115.3001.5343" },
+  { label: "Twitter", href: "https://x.com/__Scabbard" },
 ];
 
 type SiteLayoutProps = {
@@ -23,7 +26,7 @@ type SiteLayoutProps = {
 export default function SiteLayout({ children, active }: SiteLayoutProps) {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="relative mx-auto grid min-h-screen max-w-7xl divide-y md:grid-cols-[280px_1fr] md:divide-y-0 md:divide-x">
+      <div className="relative mx-auto grid min-h-screen max-w-7xl divide-y md:grid-cols-[280px_1fr] md:divide-y-0 md:divide-x md:divide-slate-200">
         <aside className="flex flex-col justify-between bg-white px-8 py-12 shadow-md md:sticky md:top-0 md:h-screen md:max-h-screen">
           <div className="flex flex-col items-center gap-6">
             <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-full border-4 border-slate-200 bg-slate-100">

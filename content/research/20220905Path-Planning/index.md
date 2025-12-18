@@ -3,7 +3,7 @@ title: Path Planning of Autonomous Pollination Using Heredity Algorithm for Inte
 subtitle: Heredity Algorithm path planning for Pollination robot
 date: 2022-09-05
 image: main.png
-keywords: 
+keywords: Path Planning; Herdity Algorithm
 links:
   paper: https://scholar.google.com/citations?view_op=view_citation&hl=en&user=l3DCtDkAAAAJ&citation_for_view=l3DCtDkAAAAJ:9yKSN-GCB0IC  
   code: https://github.com/Scabbards1500/Matlab-toolbox-based-on-Heredity-Algorithm   

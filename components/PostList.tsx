@@ -114,14 +114,25 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
           >
             <div className="flex flex-1 flex-col gap-4">
               <div className="space-y-2">
-                {post.date && (
-                  <span className="text-xs font-medium uppercase tracking-widest text-slate-400">
-                    {new Date(post.date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  {post.contentType && (
+                    <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                      {post.contentType === "research" ? "Research" :
+                       post.contentType === "internship" ? "Internship" :
+                       post.contentType === "awards" ? "Awards" :
+                       post.contentType === "notes" ? "Notes" :
+                       post.contentType}
+                    </span>
+                  )}
+                  {post.date && (
+                    <span className="text-xs font-medium uppercase tracking-widest text-slate-400">
+                      {new Date(post.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                      })}
+                    </span>
+                  )}
+                </div>
                 {headingLevel === "h2" ? (
                   <h2 className="text-2xl font-semibold text-slate-900">{post.title}</h2>
                 ) : (
@@ -145,22 +156,22 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
               {showSummary && post.summary && <p className="text-sm text-slate-500">{post.summary}</p>}
               {post.author && <p className="text-sm text-slate-500"> {post.author}</p>}
 
-              <div className="space-y-4">{renderMarkdown(post.content, post.slug, contentType, handleImageClick)}</div>
+              <div className="space-y-4">{renderMarkdown(post.content, post.slug, post.contentType || contentType, handleImageClick)}</div>
 
               {(post.links || post.status) && (
                 <div className="flex flex-wrap gap-3 pt-2 text-sm font-medium">
                   {post.links &&
                     Object.entries(post.links).map(([key, url]) => (
-                      <Link
-                        key={key}
-                        href={url}
+                    <Link
+                      key={key}
+                      href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-full border border-slate-300 px-3 py-1 capitalize text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
-                      >
-                        {key}
-                      </Link>
-                    ))}
+                      className="rounded-full border border-slate-300 px-3 py-1 capitalize text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+                    >
+                      {key}
+                    </Link>
+                  ))}
                   {post.status && (() => {
                     const statusLower = post.status.toLowerCase();
                     let statusClassName = "rounded-full border border-slate-300 px-3 py-1 text-slate-600";
@@ -185,11 +196,11 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
               <div className="md:w-64">
                 <div className="h-48 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
                   <img
-                    src={getImageUrl(post.image, post.slug, contentType)}
+                    src={getImageUrl(post.image, post.slug, post.contentType || contentType)}
                     alt={post.title}
                     className="h-full w-full cursor-pointer object-cover transition hover:opacity-90"
                     loading="lazy"
-                    onClick={() => handleImageClick(getImageUrl(post.image!, post.slug, contentType), post.title)}
+                    onClick={() => handleImageClick(getImageUrl(post.image!, post.slug, post.contentType || contentType), post.title)}
                   />
                 </div>
               </div>
