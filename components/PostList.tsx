@@ -107,10 +107,14 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
   return (
     <>
       <div className="flex flex-col gap-10">
-        {posts.map((post) => (
+        {posts.map((post, index) => (
           <article
             key={post.slug}
-            className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md md:flex-row"
+            className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-500 ease-out hover:shadow-md md:flex-row opacity-0 animate-fade-in-up"
+            style={{
+              animationDelay: `${index * 50}ms`,
+              animationFillMode: 'forwards',
+            }}
           >
             <div className="flex flex-1 flex-col gap-4">
               <div className="space-y-2">
