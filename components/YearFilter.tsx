@@ -9,8 +9,16 @@ type YearFilterProps = {
 };
 
 export default function YearFilter({ posts, onFilterChange }: YearFilterProps) {
-  // 可选的年份列表（从新到旧）
-  const availableYears = ["2025", "2024", "2023", "2022"];
+  // 从文章内容的 date 字段自动提取年份（从新到旧）
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    posts.forEach((post) => {
+      if (post.date) {
+        years.add(new Date(post.date).getFullYear().toString());
+      }
+    });
+    return Array.from(years).sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+  }, [posts]);
 
   const [selectedYears, setSelectedYears] = useState<Set<string>>(new Set());
 
