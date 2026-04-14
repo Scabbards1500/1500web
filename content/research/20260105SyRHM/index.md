@@ -9,7 +9,7 @@ links:
   code: https://anonymous.4open.science/r/MemOracle-C66F/README.md 
 author: Hanling Wang, Chenlong Wei, Yingjian Li, Di Wu, Yuchao Zhang, Xiaohui Zhu*, Yao Zhu*
 keywords: Large Language Model; Symbolic Reasoning; Neuro-Symbolic AI; Multimodal Representation Learning; Harmful Content Detection
-status: ACL2026 Findings: Under Review
+status: EMNLP: Preparing for Submission
 ---
 
 

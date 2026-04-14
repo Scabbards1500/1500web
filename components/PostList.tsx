@@ -182,6 +182,8 @@ export default function PostList({ posts, headingLevel = "h3", showSummary = tru
                     
                     if (statusLower.includes("under review")) {
                       statusClassName = "rounded-full border border-yellow-400 bg-yellow-50 px-3 py-1 text-yellow-700";
+                    } else if (statusLower.includes("preparing for submission")) {
+                      statusClassName = "rounded-full border border-blue-400 bg-blue-50 px-3 py-1 text-blue-700";
                     } else if (statusLower.includes("accepted")) {
                       statusClassName = "rounded-full border border-green-400 bg-green-50 px-3 py-1 text-green-700";
                     }
