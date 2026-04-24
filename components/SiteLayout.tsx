@@ -47,7 +47,7 @@ export default function SiteLayout({ children, active }: SiteLayoutProps) {
                 scaaabbards@gmail.com
               </p>
               <p className="mt-1 max-w-[16rem] text-sm leading-relaxed text-slate-500">
-                M.S. in Computer Science and Engineering
+                M.S. in CSE
                 <br />
                 University of California, San Diego
               </p>
