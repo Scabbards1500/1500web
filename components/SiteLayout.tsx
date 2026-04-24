@@ -40,9 +40,16 @@ export default function SiteLayout({ children, active }: SiteLayoutProps) {
               />
             </div>
             <div className="text-center">
-              <h1 className="text-xl font-semibold text-slate-900">Hanling Wang</h1>
+              <h1 className="text-xl font-semibold text-slate-900">
+                Hanling Wang <span className="font-normal" aria-hidden>🦭</span>
+              </h1>
               <p className="mt-2 text-sm text-slate-500">
                 scaaabbards@gmail.com
+              </p>
+              <p className="mt-1 max-w-[16rem] text-sm leading-relaxed text-slate-500">
+                M.S. in Computer Science and Engineering
+                <br />
+                University of California, San Diego
               </p>
             </div>
           </div>
