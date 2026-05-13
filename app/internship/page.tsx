@@ -15,7 +15,7 @@ export default function InternshipPage() {
         <h2 className="text-3xl font-semibold text-slate-900">Internship</h2>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 pt-12 md:px-12">
+      <section className="mx-auto max-w-5xl min-h-[calc(100vh-300px)] px-6 pt-12 md:px-12">
         {internships.length > 0 ? (
           <PostList posts={internships} headingLevel="h2" showSummary={false} contentType="internship" />
         ) : (

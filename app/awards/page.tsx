@@ -15,7 +15,7 @@ export default function AwardsPage() {
         <h2 className="text-3xl font-semibold text-slate-900">Awards</h2>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 pt-12 md:px-12">
+      <section className="mx-auto max-w-5xl min-h-[calc(100vh-300px)] px-6 pt-12 md:px-12">
         {awards.length > 0 ? (
           <PostList posts={awards} headingLevel="h2" showSummary={false} contentType="awards" />
         ) : (

@@ -7,7 +7,7 @@ const navItems = [
   { label: "Research", href: "/publication" },
   { label: "Internship", href: "/internship" },
   { label: "Awards", href: "/awards" },
-  { label: "Notes", href: "/notes" },
+  // { label: "Notes", href: "/notes" }, // 暂时关闭 Notes 模块
 ];
 
 const socialLinks = [

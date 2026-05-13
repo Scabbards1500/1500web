@@ -241,7 +241,7 @@ export function getAllPosts(): Post[] {
     ...getPosts(),
     ...getInternships(),
     ...getAwards(),
-    ...getNotes(),
+    // ...getNotes(), // 暂时关闭 Notes 模块
   ];
   
   // 按日期排序（最新的在前）
