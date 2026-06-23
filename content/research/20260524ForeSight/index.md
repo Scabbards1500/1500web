@@ -8,7 +8,7 @@ image: framework.png
 #   code: https://anonymous.4open.science/r/MemOracle-C66F/README.md 
 author: Hanling Wang, Chenlong Wei, Hanyan Niu, Qi Cao, Shizhou Huang, YangYang, Xiaohui Zhu*, Yao Zhu*
 keywords: Large Language Models; AI Safety; Harmfulness Forecasting; Early Risk Detection; Safety Signal Distillation
-status: EMNLP: UnderReview
+status: EMNLP: Under Review
 ---
 
 
