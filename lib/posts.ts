@@ -1,254 +1,152 @@
 import fs from "fs";
 import path from "path";
 
+export type Category = {
+  slug: string;
+  label: string;
+  dir: string;
+  description: string;
+};
+
+export const CATEGORIES: Category[] = [
+  { slug: "ai-engineering", label: "AI Engineering", dir: "AI-Enginnering", description: "AI Infra、环境配置与工程实践" },
+  { slug: "paper-notes", label: "Paper Notes", dir: "AI-PaperNotes", description: "论文阅读笔记" },
+  { slug: "course", label: "Course", dir: "Course", description: "课程笔记" },
+  { slug: "interview", label: "Interview", dir: "Interview", description: "Leetcode 与系统设计面试准备" },
+];
+
 export type PostMeta = {
   title: string;
-  subtitle?: string;
+  abstract?: string;
   date?: string;
-  period?: string;
-  image?: string;
-  summary?: string;
-  author?: string;
-  keywords?: string[];
-  links?: Record<string, string>;
-  highlights?: string[];
-  status?: string;
+  tags?: string[];
+  category: string;
+  /** 子文件夹路径，如 "Leetcode"、"AI Infra"；根目录下为空串 */
+  series: string;
+  /** 相对分类目录的路径段（不含 .md），用于 URL */
+  slug: string[];
 };
 
 export type Post = PostMeta & {
-  slug: string;
   content: string;
-  contentType?: string;
+  /** 相对 content/ 的目录，用于解析文章里的相对图片路径 */
+  assetDir: string;
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
+// Obsidian 新建仓库时自带的欢迎页
+const IGNORED_FILES = new Set(["欢迎.md"]);
+const HEADER_KEYS = new Set(["abstract", "time", "date", "tags"]);
 
-type FrontMatterResult = {
-  data: Record<string, string | Record<string, string> | string[]>;
-  content: string;
-};
+type Header = Record<string, string>;
 
-function parseFrontMatter(markdown: string): FrontMatterResult {
-  const frontMatterMatch = markdown.match(/^---\s*([\s\S]*?)---\s*([\s\S]*)$/);
+/**
+ * 支持两种头部写法：
+ * 1. 标准 front matter（--- 包裹）
+ * 2. 文件开头连续的 `key: value` 行（abstract / time / tags），遇到第一行非头部内容即停止
+ */
+function parseHeader(markdown: string): { header: Header; content: string } {
+  const text = markdown.replace(/^﻿/, "").replace(/\r\n/g, "\n");
+  const header: Header = {};
 
-  if (!frontMatterMatch) {
-    return { data: {}, content: markdown.trim() };
+  const frontMatter = text.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (frontMatter) {
+    for (const line of frontMatter[1].split("\n")) {
+      const m = line.match(/^(\w+):\s*(.*)$/);
+      if (m) header[m[1].toLowerCase()] = m[2].trim().replace(/^['"]|['"]$/g, "");
+    }
+    return { header, content: frontMatter[2].trim() };
   }
 
-  const [, frontMatterBlock, body] = frontMatterMatch;
-  const data: Record<string, string | Record<string, string> | string[]> = {};
-  const lines = frontMatterBlock.split("\n");
-
+  const lines = text.split("\n");
   let index = 0;
   while (index < lines.length) {
-    const line = lines[index];
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      index += 1;
-      continue;
-    }
-
-    const [rawKey, ...valueParts] = trimmed.split(":");
-    if (!rawKey) {
-      index += 1;
-      continue;
-    }
-
-    const key = rawKey.trim();
-    const value = valueParts.join(":").trim();
-
-    if (!value) {
-      // 检查是否是数组（以 - 开头）
-      index += 1;
-      if (index < lines.length) {
-        const firstNestedLine = lines[index];
-        const firstTrimmed = firstNestedLine.trim();
-        if (firstTrimmed.startsWith("-")) {
-          // 处理数组
-          const array: string[] = [];
-          while (index < lines.length) {
-            const arrayLine = lines[index];
-            const arrayTrimmed = arrayLine.trim();
-            
-            // 如果下一行不是缩进的数组项，则停止
-            if (!arrayLine.startsWith("  ") && !arrayTrimmed.startsWith("-")) {
-              break;
-            }
-
-            if (arrayTrimmed.startsWith("-")) {
-              const arrayValue = arrayTrimmed.substring(1).trim();
-              if (arrayValue) {
-                array.push(arrayValue.replace(/^['"]|['"]$/g, ""));
-              }
-            }
-
-            index += 1;
-          }
-          data[key] = array;
-          continue;
-        }
-      }
-
-      // 处理缩进嵌套对象
-      const nested: Record<string, string> = {};
-
-      while (index < lines.length) {
-        const nestedLine = lines[index];
-        if (!nestedLine.startsWith("  ")) {
-          break;
-        }
-
-        const nestedTrimmed = nestedLine.trim();
-        if (!nestedTrimmed) {
-          index += 1;
-          continue;
-        }
-
-        const [nestedKey, ...nestedValueParts] = nestedTrimmed.split(":");
-        if (nestedKey) {
-          nested[nestedKey.trim()] = nestedValueParts.join(":").trim();
-        }
-
-        index += 1;
-      }
-
-      data[key] = nested;
-      continue;
-    }
-
-    if (value.startsWith("{") || value.startsWith("[")) {
-      try {
-        data[key] = JSON.parse(value);
-      } catch {
-        data[key] = value;
-      }
-      index += 1;
-      continue;
-    }
-
-    const sanitizedValue = value.replace(/^['"]|['"]$/g, "");
-    data[key] = sanitizedValue;
+    const m = lines[index].match(/^(\w+):\s*(.*)$/);
+    if (!m || !HEADER_KEYS.has(m[1].toLowerCase())) break;
+    header[m[1].toLowerCase()] = m[2].trim();
     index += 1;
   }
-
-  return { data, content: body.trim() };
+  return { header, content: lines.slice(index).join("\n").trim() };
 }
 
-function readMarkdownCollection(baseDir: string): Post[] {
-  if (!fs.existsSync(baseDir)) {
+function normalizeDate(value?: string): string | undefined {
+  if (!value) return undefined;
+  const m = value.match(/(\d{4})[/.-](\d{1,2})[/.-](\d{1,2})/);
+  if (!m) return undefined;
+  return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+}
+
+function walkMarkdown(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.name.startsWith(".")) return [];
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walkMarkdown(full);
+    if (entry.name.endsWith(".md") && !IGNORED_FILES.has(entry.name)) return [full];
     return [];
-  }
-
-  const directories = fs
-    .readdirSync(baseDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory());
-
-  const posts = directories
-    .map((dir) => {
-      const folderPath = path.join(baseDir, dir.name);
-      const markdownFile = fs
-        .readdirSync(folderPath)
-        .find((file) => file.endsWith(".md") || file.endsWith(".mdx"));
-
-      if (!markdownFile) {
-        return null;
-      }
-
-      const fileContent = fs.readFileSync(path.join(folderPath, markdownFile), "utf-8");
-      const { data, content } = parseFrontMatter(fileContent);
-
-      const post: Post = {
-        slug: dir.name,
-        title: typeof data.title === "string" ? data.title : dir.name,
-        content,
-      };
-
-      if (typeof data.subtitle === "string") {
-        post.subtitle = data.subtitle;
-      }
-      if (typeof data.date === "string") {
-        post.date = data.date;
-      }
-      if (typeof data.image === "string") {
-        post.image = data.image;
-      }
-      if (typeof data.summary === "string") {
-        post.summary = data.summary;
-      }
-      if (typeof data.author === "string") {
-        post.author = data.author;
-      }
-      if (typeof data.period === "string") {
-        post.period = data.period;
-      }
-      if (typeof data.keywords === "string") {
-        // 支持分号分隔的字符串格式
-        post.keywords = data.keywords.split(";").map((k) => k.trim()).filter(Boolean);
-      } else if (Array.isArray(data.keywords)) {
-        post.keywords = data.keywords as string[];
-      }
-      if (Array.isArray(data.highlights)) {
-        post.highlights = data.highlights as string[];
-      }
-      if (typeof data.links === "object" && data.links !== null) {
-        post.links = data.links as Record<string, string>;
-      }
-      if (typeof data.status === "string") {
-        post.status = data.status;
-      }
-
-      return post;
-    })
-    .filter((post) => post !== null)
-    .sort((a, b) => {
-      if (!a.date || !b.date) return 0;
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
-
-  return posts as Post[];
-}
-
-
-
-export function getPosts(): Post[] {
-  const POSTS_DIR = path.join(CONTENT_DIR, "research");
-  const posts = readMarkdownCollection(POSTS_DIR);
-  return posts.map(post => ({ ...post, contentType: "research" }));
-}
-
-export function getNotes(): Post[] {
-  const notesDir = path.join(CONTENT_DIR, "notes");
-  const posts = readMarkdownCollection(notesDir);
-  return posts.map(post => ({ ...post, contentType: "notes" }));
-}
-
-export function getInternships(): Post[] {
-  const internshipsDir = path.join(CONTENT_DIR, "internship");
-  const posts = readMarkdownCollection(internshipsDir);
-  return posts.map(post => ({ ...post, contentType: "internship" }));
-}
-
-export function getAwards(): Post[] {
-  const awardsDir = path.join(CONTENT_DIR, "awards");
-  const posts = readMarkdownCollection(awardsDir);
-  return posts.map(post => ({ ...post, contentType: "awards" }));
-}
-
-export function getAllPosts(): Post[] {
-  const allPosts = [
-    ...getPosts(),
-    ...getInternships(),
-    ...getAwards(),
-    // ...getNotes(), // 暂时关闭 Notes 模块
-  ];
-  
-  // 按日期排序（最新的在前）
-  return allPosts.sort((a, b) => {
-    if (!a.date || !b.date) return 0;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 }
 
+function sortByDate<T extends { date?: string; title: string }>(posts: T[]): T[] {
+  return posts.sort((a, b) => {
+    if (a.date && b.date) return b.date.localeCompare(a.date);
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return a.title.localeCompare(b.title);
+  });
+}
 
+function readCategory(category: Category): Post[] {
+  const baseDir = path.join(CONTENT_DIR, category.dir);
+
+  const posts = walkMarkdown(baseDir).flatMap((file) => {
+    const { header, content } = parseHeader(fs.readFileSync(file, "utf-8"));
+    if (!content) return [];
+
+    const relative = path.relative(baseDir, file).split(path.sep);
+    const fileName = relative[relative.length - 1].replace(/\.md$/, "");
+    const post: Post = {
+      title: fileName,
+      category: category.slug,
+      series: relative.slice(0, -1).join(" / "),
+      slug: [...relative.slice(0, -1), fileName],
+      content,
+      assetDir: path.relative(CONTENT_DIR, path.dirname(file)).split(path.sep).join("/"),
+    };
+    if (header.abstract) post.abstract = header.abstract;
+    const date = normalizeDate(header.time ?? header.date);
+    if (date) post.date = date;
+    if (header.tags) post.tags = header.tags.split(/[;,，]/).map((t) => t.trim()).filter(Boolean);
+    return [post];
+  });
+
+  return sortByDate(posts);
+}
+
+export function getCategory(slug: string): Category | undefined {
+  return CATEGORIES.find((c) => c.slug === slug);
+}
+
+export function getPostsByCategory(slug: string): Post[] {
+  const category = getCategory(slug);
+  return category ? readCategory(category) : [];
+}
+
+export function getAllPosts(): Post[] {
+  return sortByDate(CATEGORIES.flatMap(readCategory));
+}
+
+export function getPost(categorySlug: string, slug: string[]): Post | undefined {
+  const key = slug.join("/");
+  return getPostsByCategory(categorySlug).find((post) => post.slug.join("/") === key);
+}
+
+export function postHref(post: Pick<PostMeta, "category" | "slug">): string {
+  return `/blog/${post.category}/${post.slug.map(encodeURIComponent).join("/")}`;
+}
+
+/** 列表页只需要元信息，不把正文传给客户端 */
+export function toMeta({ content: _content, assetDir: _assetDir, ...meta }: Post): PostMeta {
+  return meta;
+}
