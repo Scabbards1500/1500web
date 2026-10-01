@@ -77,15 +77,41 @@ function normalizeDate(value?: string): string | undefined {
   return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
 }
 
-function walkMarkdown(dir: string): string[] {
+function walkFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     if (entry.name.startsWith(".")) return [];
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) return walkMarkdown(full);
-    if (entry.name.endsWith(".md") && !IGNORED_FILES.has(entry.name)) return [full];
-    return [];
+    return entry.isDirectory() ? walkFiles(full) : [full];
   });
+}
+
+function assetUrl(file: string): string {
+  return `/api/content/${path.relative(CONTENT_DIR, file).split(path.sep).map(encodeURIComponent).join("/")}`;
+}
+
+/**
+ * Obsidian 按文件名在整个仓库里查找附件（默认粘贴到仓库根目录），而不是相对笔记所在目录。
+ * 这里把 ![[name]] 和找不到的相对路径 ![](name) 都按同样规则解析成可访问的 URL。
+ */
+function resolveAttachments(content: string, noteDir: string, attachments: Map<string, string>): string {
+  const lookup = (target: string): string | undefined => {
+    const clean = decodeURI(target.trim());
+    const local = path.join(noteDir, clean);
+    if (fs.existsSync(local)) return assetUrl(local);
+    const byName = attachments.get(path.basename(clean));
+    return byName ? assetUrl(byName) : undefined;
+  };
+
+  return content
+    .replace(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (whole, target: string) => {
+      const url = lookup(target);
+      return url ? `![](${url})` : whole;
+    })
+    .replace(/!\[([^\]]*)\]\((?!https?:|\/|data:)([^)\s]+)\)/g, (whole, alt: string, target: string) => {
+      const url = lookup(target);
+      return url ? `![${alt}](${url})` : whole;
+    });
 }
 
 function sortByDate<T extends { date?: string; title: string }>(posts: T[]): T[] {
@@ -99,10 +125,14 @@ function sortByDate<T extends { date?: string; title: string }>(posts: T[]): T[]
 
 function readCategory(category: Category): Post[] {
   const baseDir = path.join(CONTENT_DIR, category.dir);
+  const files = walkFiles(baseDir);
+  const attachments = new Map(files.filter((f) => !f.endsWith(".md")).map((f) => [path.basename(f), f]));
+  const notes = files.filter((f) => f.endsWith(".md") && !IGNORED_FILES.has(path.basename(f)));
 
-  const posts = walkMarkdown(baseDir).flatMap((file) => {
-    const { header, content } = parseHeader(fs.readFileSync(file, "utf-8"));
-    if (!content) return [];
+  const posts = notes.flatMap((file) => {
+    const { header, content: raw } = parseHeader(fs.readFileSync(file, "utf-8"));
+    if (!raw) return [];
+    const content = resolveAttachments(raw, path.dirname(file), attachments);
 
     const relative = path.relative(baseDir, file).split(path.sep);
     const fileName = relative[relative.length - 1].replace(/\.md$/, "");
