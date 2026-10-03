@@ -4,7 +4,6 @@
 
 1. Identify two sources of KV-cache memory waste that PagedAttention addresses. What are the tradeoffs of larger versus smaller allocation blocks?
 
-
 2. For a tool-calling task on one model instance, when would you preserve, discard/recompute, or offload its KV state during a pause? How could chunked prefill change the cost of resuming, and when would it provide no benefit?
 
 p.s 天哪真的非常与时俱进的课，昨天是20260929，然后老师就课上和我们讨论jev的事情，今天又带着我们读vllm

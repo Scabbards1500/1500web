@@ -1,14 +1,21 @@
 abstract: 之前数据结构差不多学完了， 然后这里是常考算法合集，包含回溯，二分，贪心，dp
 time: 2026/08/19
-## 双指针 two pointers
+# 双指针 two pointers
 
 | 类型 | 典型写法 | 思路 |
 | --- | --- | --- |
 | **扫描型双指针** | `for right` + `left` | 一个探索，一个维护 |
 | **对撞型双指针** | `while left < right` | 左右向中间靠 |
 | **快慢指针** | `slow` + `fast` | 两个指针速度不同 |
+## 滑动窗口
 
-## 回溯 Backtrack
+**双指针问的是：两个 pointer 怎么移动？**
+**滑动窗口问的是：`[left, right]` 这个区间怎么维护？**
+
+
+
+
+# 回溯 Backtrack
 
 可以把 **Backtracking 理解成 DFS 的一个特殊版本**：
 
@@ -113,7 +120,7 @@ start index
 
 > DFS + Backtracking
 
-## 二分查找 Binary search
+# 二分查找 Binary search
 
 #### 普通二分
 
@@ -141,7 +148,7 @@ return left
 left = right = 边界
 ```
 
-## 贪心算法 Greedy Algorithm
+# 贪心算法 Greedy Algorithm
 
 每一步都选择当前最优的方案，希望最后得到全局最优。
 
@@ -167,7 +174,7 @@ DP： 我现在做这个选择，会不会影响未来？
 
 greedy: 我现在直接选一个我认为最好的，之后不反悔。
 
-## **动态规划 Dynamic Programming（DP）**
+# **动态规划 Dynamic Programming（DP）**
 
 把一个大问题拆成很多相互关联的小问题，把小问题的答案存下来，避免重复计算。
 
@@ -241,7 +248,7 @@ class Solution:
         return dp[n]
 ```
 
-### 多维动态规划
+## 多维动态规划
 
 > **当一个问题的“状态”不只由一个变量决定，而是需要同时记录多个维度的信息时，就把这些维度一起放进 DP 状态。**
 
