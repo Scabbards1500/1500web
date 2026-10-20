@@ -20,7 +20,7 @@ Markdown 本身**没有统一的文字颜色语法**，通常用 HTML：
 ```
 <span style="color: red;">这是红色文字</span>
 
-<span style="color: #2563eb;">这是蓝色文字</span>
+<span style="color: #66ccff;">这是蓝色文字</span>
 ```
 
 背景高亮可以这样写：
