@@ -1,3 +1,4 @@
+time: 2026/11/10
 
 这节课围绕两个场景展开。**多个请求共享同一段 prompt 时，Preble 决定把请求发到哪张 GPU，尽量复用已有的 KV cache。新请求的长 prefill 拖慢正在生成的请求时，DistServe 把两个阶段分开跑，Sarathi-Serve 则把 prefill 切小后交错执行。**
 

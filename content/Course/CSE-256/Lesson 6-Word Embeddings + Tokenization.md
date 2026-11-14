@@ -1,3 +1,4 @@
+time: 2026/11/06
 
 - Tokenization 决定文本被切成哪些 token。
 - Embedding 把每个 token 转成一个向量。

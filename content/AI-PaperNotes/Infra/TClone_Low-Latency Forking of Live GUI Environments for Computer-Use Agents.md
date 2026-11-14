@@ -1,3 +1,4 @@
+time: 2026/10/20
 这篇 **TClone** 是一篇偏 **Operating Systems（OS）** 的论文，核心想法很直观：**让 Computer-Use Agent 能够给整个桌面环境“开分支”，试错之后再选择保留哪个结果。** 
 **1. 它解决什么问题？**
 

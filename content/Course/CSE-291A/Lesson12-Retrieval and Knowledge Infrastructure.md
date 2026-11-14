@@ -1,3 +1,4 @@
+time: 2026/11/05
 这节课的主题是 **Retrieval and Knowledge Infrastructure（检索与知识基础设施）**。核心问题是 **怎样让 LLM 找到合适的外部知识，并在回答质量、延迟和资源开销之间取得平衡？**
 
 

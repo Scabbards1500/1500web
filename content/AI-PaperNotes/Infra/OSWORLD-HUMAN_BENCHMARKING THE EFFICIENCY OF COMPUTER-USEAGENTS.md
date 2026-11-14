@@ -1,3 +1,4 @@
+time: 2026/10/28
 这篇论文 《OSWorld-Human: Benchmarking the Efficiency of Computer-Use Agents》 是 UC San Diego 的 Yiying Zhang 团队发表在 MLSys 2026 的工作。
 
 它的研究方向属于 AI Agents + Computer Systems，主要关注 Computer-Use Agent（CUA）的执行效率。

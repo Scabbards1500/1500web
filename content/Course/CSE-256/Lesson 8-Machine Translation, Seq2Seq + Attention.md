@@ -1,3 +1,4 @@
+time: 2026/11/06
 
 主线：将 RNN Language Model 用于机器翻译，利用 Attention 解决信息瓶颈，再通过 Decoding 选出完整译文。
 

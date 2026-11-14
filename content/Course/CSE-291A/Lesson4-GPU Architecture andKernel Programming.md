@@ -1,3 +1,4 @@
+time: 2026/10/06
 # Lecture 04：GPU Architecture and Kernel Programming
 
 这节课研究：模型计算落到 GPU 上后，如何组织线程、搬运数据和调度任务，让硬件得到充分利用。
