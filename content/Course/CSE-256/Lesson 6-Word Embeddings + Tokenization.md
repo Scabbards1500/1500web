@@ -1,10 +1,6 @@
 
-上一节课介绍了 neural networks，以及把 word embeddings 取平均后进行 classification 的 Deep Averaging Network（DAN）。
-
-这节课进一步回答：
-
-1. Word embeddings 是怎么学出来的？
-2. 什么算一个 word，model 实际接收什么单位？
+- Tokenization 决定文本被切成哪些 token。
+- Embedding 把每个 token 转成一个向量。
 
 主线是：
 
@@ -99,7 +95,9 @@ $$
 
 在这个例子里，甚至直接变成常数。
 
-第 10 页进一步展示：相同 weights 搭配不同 activation functions，最终的 function shape 可以很不一样。
+相同 weights 搭配不同 activation functions，最终的 function shape 可以很不一样。
+![[Pasted image 20261104001855.png]]
+
 
 ## 第二章：为什么需要 learned word representations？（第 11–14 页）
 
@@ -114,12 +112,13 @@ WordNet 是手工构建的 lexical resource，可以记录：
 
 它把 words 及其 relations 组织起来。
 
-### 2. Hand-built resources 的限制
 
-| Limitation | 含义 |
-|---|---|
-| Too coarse | 放在相似类别里的词，实际用法可能不同 |
-| Difficult to maintain | 新词、新义不断出现，人工更新跟不上 |
+但是
+
+| Limitation                | 含义                                        |
+| ------------------------- | ----------------------------------------- |
+| Too coarse                | 放在相似类别里的词，实际用法可能不同                        |
+| Difficult to maintain     | 新词、新义不断出现，人工更新跟不上                         |
 | Limited graded similarity | 单纯的 graph links 不直接提供连续的 similarity score |
 
 例如：
@@ -132,7 +131,7 @@ WordNet 是手工构建的 lexical resource，可以记录：
 
 注意，learned embeddings 也不会自动保持最新；它们仍然受 training corpus 和更新时间限制。
 
-### 3. 把 word 表示为 vector
+### 关键创新: 把 word 表示为 vector
 
 每个 word 对应一个 dense vector：
 
@@ -166,8 +165,8 @@ $$
 
 Cosine similarity 会消除 vector magnitude 的影响，主要比较 direction。
 
-### 4. 一个需要注意的直觉简化
 
+注意！
 PPT 用 good 与 bad 指向相反方向作示意。
 
 但实际 distributional embeddings 中，antonyms 也可能很接近，因为它们常出现在类似 contexts：
@@ -175,9 +174,7 @@ PPT 用 good 与 bad 指向相反方向作示意。
 - a good movie
 - a bad movie
 
-因此：
-
-**Distributional similarity 不等于 synonymy，反义关系也不保证对应 opposite directions。**
+因此：**Distributional similarity 不等于 synonymy，反义关系也不保证对应 opposite directions。**
 
 ## 第三章：Distributional semantics（第 15–20 页）
 
@@ -197,9 +194,7 @@ PPT 使用 kombucha 举例：
 
 推测它属于某种 drink。
 
-这就是 distributional semantics 的核心直觉：
-
-> Words that occur in similar contexts tend to have related meanings.
+这就是 distributional semantics 的核心直觉：**Words that occur in similar contexts tend to have related meanings.**
 
 ### 2. 为什么需要多个 dimensions？
 
@@ -244,18 +239,18 @@ $$
 其中：
 
 - 每一行对应一个 vocabulary item。
-- 每一列对应一个 embedding dimension。
+- 每一列对应一个 embedding dimension。<span style="color: #66ccff;"> Dense embeddings 的 dimension 通常远小于 vocabulary size。</span> 
 - Token ID 用来选择对应的 row。
 
 例如：
 
-| Quantity | Example |
-|---|---:|
-| Vocabulary size | 50,000 |
-| Embedding dimension | 300 |
+| Quantity               |      Example |
+| ---------------------- | -----------: |
+| Vocabulary size        |       50,000 |
+| Embedding dimension    |          300 |
 | Embedding matrix shape | 50,000 × 300 |
 
-Dense embeddings 的 dimension 通常远小于 vocabulary size。
+
 
 ## 第四章：Word2Vec 的 Skip-gram——通过预测 neighbors 学习 vectors（第 21–26 页）
 
@@ -263,13 +258,11 @@ Dense embeddings 的 dimension 通常远小于 vocabulary size。
 
 Word2Vec 从大量 raw text 中学习 vectors。
 
-Skip-gram 使用的 prediction task 是：
+**Skip-gram** 使用的 prediction task 是：
 
 > 给定 center word，预测它附近的 context words。
 
-Training targets 直接从 text 中构造，因此不需要人工标注的 meaning labels。
-
-这可以理解为 self-supervised learning。
+Training targets 直接从 text 中构造，因此不需要人工标注的 meaning labels, 可以理解为 self-supervised learning。
 
 ### 2. Sliding window 构造 training pairs
 
@@ -350,7 +343,10 @@ $$
 - Classes：vocabulary 中所有可能的 context words。
 - Output：各 context words 的 probabilities。
 
-### 5. Skip-gram 是什么 network？
+### Skip-gram
+给你一个中心词，猜它附近出现了什么词
+
+![[Pasted image 20261104013359.png]]
 
 可以理解为：
 
@@ -368,7 +364,6 @@ Hidden representation 就是 center word 的 embedding。
 
 它的目标是学习 representations，不是依靠 deep nonlinear boundaries 完成任务。
 
-## 第五章：Skip-gram 的 loss 与 gradients（第 24–27 页）
 
 ### 1. 一对 center–context 的 loss
 
@@ -413,7 +408,9 @@ $$
 
 Theta 包含两套 word vectors。
 
-### 3. Context vector 的 gradient
+### gradient
+
+#### Context vector 的
 
 令 pw 表示 model 给 context candidate w 的 probability。
 
@@ -447,7 +444,7 @@ $$
 p_wv_c
 $$
 
-### 4. Center vector 的 gradient
+#### 4. Center vector
 
 Center vector 影响所有 output scores，因此要把路径 contributions 相加：
 
@@ -622,7 +619,6 @@ $$
 
 ## 第八章：Tokenization——到底什么算一个 token？（第 31–35 页）
 
-### 1. Model 不直接处理原始 text
 
 基本流程：
 

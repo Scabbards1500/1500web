@@ -1,5 +1,4 @@
 
-
 前两节课解决了两个问题：
 
 - Learning Part I：应该 optimize 什么？——定义 loss。
@@ -53,7 +52,7 @@ $$
 P(y=1\mid x)=\sigma(w^\top x+b)
 $$
 
-这就是 binary logistic regression。
+这就是 binary logistic regression（用来做二分类，并估计样本属于正类的概率）。
 
 ### 2. 一个 neuron 做两件事
 
@@ -85,7 +84,15 @@ Input → Weighted sum → Activation → Output
 
 Sigmoid 把任意 real-valued score 转换到 0 和 1 之间，因此可以用于表示 binary class probability。
 
+<span style="color: #66ccff;">注意区分sigmoid 和softmax, 我以前老搞混</span>
+
+|函数|怎么转|常见用途|
+|---|---|---|
+|**Sigmoid**|把一个 logit 映射到 \((0,1)\)。如果对多个 logit 分别用 Sigmoid，结果不要求加起来等于 1|**Binary Classification** 或 **Multi-label Classification**|
+|**Softmax**|把一组 logits 转成一组概率，所有概率加起来等于 1|**Multi-class Classification**，每个样本只属于一个类别|
+
 ### 4. 为什么 single Sigmoid neuron 的 decision boundary 仍然是 linear？
+![[Pasted image 20261103204657.png]]
 
 Sigmoid 虽然是 nonlinear function，但它 strictly increasing：
 
@@ -134,6 +141,7 @@ h=[h_1,h_2,h_3,h_4]^\top
 $$
 
 ### 2. Hidden units 不需要单独的 labels
+![[Pasted image 20261103205403.png]]
 
 我们只提供最终任务的 label，例如 Spam 或 Not spam。
 
@@ -148,7 +156,7 @@ $$
 **Hidden units 学什么，取决于什么样的 representation 有助于降低最终 loss。**
 
 ### 3. 用 matrix 表示整个 layer
-
+![[Pasted image 20261103205737.png]]
 对于第 i 个 neuron：
 
 $$
@@ -190,7 +198,7 @@ $$
 **W 的每一行，对应一个 neuron 的全部 input weights。**
 
 ### 4. Stacking layers
-
+![[Pasted image 20261103205833.png]]
 多个 layers 可以写成：
 
 $$
@@ -259,28 +267,25 @@ $$
 
 对于 classification，表达的仍然是 linear decision boundary。
 
-### 2. Nonlinear hidden layers 改变 representation
-
-第 19 页的图中：
-
+形象化: 
+![[Pasted image 20261103210633.png]]
 - 原始 input space 中，红点集中在内部，蓝点分布在外围。
 - 无法用一条直线将它们分开。
 - 经过 nonlinear hidden transformation 后，两类在新的 representation space 中可以用直线分开。
 
-可以理解为：
+可以理解为 Hidden layers 负责重新组织 representation，让最后的 linear classifier 更容易完成任务。
 
-> Hidden layers 负责重新组织 representation，让最后的 linear classifier 更容易完成任务。
 
-在 hidden space 中是直线的 decision boundary，映射回原始 input space 后，可以对应弯曲的 boundary。
 
-图中的圆形 boundary 是一种示意，并不是所有 hidden layers 都会产生圆。
+
 
 ## 第四章：常见 activation functions（第 20–21 页）
 
-PPT 第 20 页同时画出了 activation 和对应的 derivative。
+这张图同时画出了 activation 和对应的 derivative。理解 derivative 很重要，因为 backpropagation 会沿路径乘上这些 derivatives。
+![[Pasted image 20261103210758.png]]
 
-理解 derivative 很重要，因为 backpropagation 会沿路径乘上这些 derivatives。
 
+![[Pasted image 20261103210838.png]]
 ### 1. Sigmoid
 
 $$
@@ -327,17 +332,9 @@ $$
 g(z)=\max(0,z)
 $$
 
-当 z 大于 0 时：
+当 z 大于 0 时：$g'(z)=1$
 
-$$
-g'(z)=1
-$$
-
-当 z 小于 0 时：
-
-$$
-g'(z)=0
-$$
+当 z 小于 0 时：$g'(z)=0$
 
 特点：
 
@@ -348,6 +345,8 @@ $$
 如果某个 neuron 长期对 inputs 都输出 0，它可能难以继续学习，这叫 dead ReLU。
 
 在零点，ReLU 不可微；实际 frameworks 使用约定的 derivative。
+
+注意，ReLU 的 active derivative 为 1，不代表整个 network 一定不会发生 vanishing 或 exploding gradients；weights 也会影响 gradient propagation。
 
 ### 4. Leaky ReLU
 
@@ -368,15 +367,8 @@ PPT 将 GELU 列为 Transformers 中常见的 activation。
 
 它是 smooth nonlinear activation，常见于 BERT、GPT 等 architectures。
 
-| Activation | 主要特点 | 常见用途 |
-|---|---|---|
-| Sigmoid | 输出在 0 和 1 之间 | Binary output、gates |
-| tanh | Zero-centered、两端 saturation | RNN、LSTM |
-| ReLU | 简单、positive slope 为 1 | Hidden layers |
-| Leaky ReLU | Negative region 保留 slope | 缓解 dead ReLU |
-| GELU | Smooth | Transformers |
 
-注意，ReLU 的 active derivative 为 1，不代表整个 network 一定不会发生 vanishing 或 exploding gradients；weights 也会影响 gradient propagation。
+
 
 ## 第五章：Forward pass 与代码对应关系（第 22–23 页）
 
@@ -702,6 +694,7 @@ PPT 强调，large networks 往往 overparameterized，可能存在许多表现�
 
 ### 3. L2 regularization
 
+**惩罚过大的权重**，预测变得更平缓
 可以在 loss 中加入：
 
 $$
@@ -715,13 +708,13 @@ $$
 
 这里对多个 layers 的 weights 分别施加 penalty。
 
-第 38 页展示：
+![[Pasted image 20261103211720.png]]
 
 - Regularization 太弱：boundary 可能围绕 individual points 形成小岛。
 - 适中的 regularization：保留主要 pattern。
 - Regularization 太强：可能错过有效结构，造成 underfitting。
 
-“Boundary 更平滑”是这组图中的直觉效果，并不是 L2 对所有 networks 的严格保证。
+
 
 ### 4. Dropout
 
@@ -749,6 +742,8 @@ PyTorch 默认使用 inverted dropout：
 - Evaluation 时不再进行这种随机屏蔽或 scaling。
 
 ## 第八章：Deep Averaging Network——PA1 的核心 architecture（第 40–42 页）
+
+![[Pasted image 20261103211816.png]]
 
 Deep Averaging Network，简称 DAN，是一个简单的 text classification model。
 
@@ -821,8 +816,8 @@ $$
 
 同一个 word 的多次 occurrences 对共享 embedding parameter 的 contributions 会累加。
 
-### 5. DAN 的优点
-
+### Pros & Cons
+pros
 - Architecture 简单。
 - 计算快。
 - 支持 variable-length text。
@@ -831,9 +826,8 @@ $$
 
 这不代表 DAN 在所有 NLP tasks 上都优于这些 models。
 
-### 6. DAN 的限制：忽略 word order
-
-Average pooling 对 word order 不敏感。
+cons
+忽略 word order, Average pooling 对 word order 不敏感。
 
 例如：
 
@@ -849,8 +843,7 @@ Average pooling 对 word order 不敏感。
 
 **DAN 的能力同时取决于 embeddings 和 FFN，但受到 averaging representation 的限制。**
 
-## 第九章：Training hyperparameters 与 PA1 实践（第 43–47 页）
-
+## 第九章：Training hyperparameters 
 ### 1. 三类 hyperparameters
 
 | Category | Examples | 控制什么？ |
@@ -880,61 +873,15 @@ Test set 用于最终 evaluation，不用于反复调整设置。
 
 PPT 中关于“小 tweaks 通常提升不到 1%”的说法属于实践经验，不是通用保证。
 
-### 3. Learning rate schedules
-
+**schedules**
 训练前期较大的 learning rate 可以帮助快速移动，后期较小的 learning rate 有助于稳定下来。
-
-PPT 提到：
-
+e.g
 - Step decay。
 - Cosine decay。
 - Warmup + decay。
 
 Warmup 表示从较小的 learning rate 开始，逐渐增大，再进入 decay。
 
-### 4. Bug 1：CrossEntropyLoss 前手动调用 Softmax
-
-对于 multiclass classification：
-
-```python
-logits = model(inputs)
-loss = nn.CrossEntropyLoss()(logits, labels)
-```
-
-nn.CrossEntropyLoss 接收 raw logits，并在内部完成稳定的 log-softmax calculation。
-
-因此，通常不要先写：
-
-```python
-probabilities = torch.softmax(logits, dim=-1)
-loss = nn.CrossEntropyLoss()(probabilities, labels)
-```
-
-Inference 时如果需要 probabilities，再对 logits 使用 Softmax。
-
-### 5. Bug 2：Evaluation 时忘记关闭 Dropout
-
-Training：
-
-```python
-model.train()
-```
-
-Evaluation：
-
-```python
-model.eval()
-
-with torch.no_grad():
-    logits = model(inputs)
-```
-
-两者作用不同：
-
-- model.eval()：切换 modules 的行为，例如关闭 Dropout。
-- torch.no_grad()：关闭 gradient tracking，节省计算与内存。
-
-仅使用 no_grad，不会自动关闭 Dropout。
 
 ## 第十章：本节课与整个 text classification pipeline 的联系（第 48 页）
 
@@ -962,7 +909,6 @@ Loss → Backpropagation → Gradients → Optimizer update
 
 但 model 只能利用 input representation 中保留的信息。
 
-因此，下一节课会进一步讨论 word meaning 和 word representations。
 
 ## 最需要掌握的六个问题
 
