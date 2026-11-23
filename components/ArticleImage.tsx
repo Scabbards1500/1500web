@@ -20,7 +20,7 @@ export default function ArticleImage({ src, alt = "" }: ArticleImageProps) {
         alt={alt}
         loading="lazy"
         referrerPolicy="no-referrer"
-        className="my-4 inline-block max-w-full cursor-zoom-in rounded-lg border border-slate-200 transition hover:opacity-90"
+        className="my-4 inline-block max-w-full cursor-zoom-in rounded-lg border border-slate-800 transition hover:opacity-90"
         onClick={() => setIsOpen(true)}
       />
       <ImageModal src={src} alt={alt} isOpen={isOpen} onClose={() => setIsOpen(false)} />

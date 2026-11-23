@@ -26,28 +26,28 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     acc.set(post.series, list);
     return acc;
   }, new Map());
-  const orderedGroups = [...groups.entries()].sort(([a], [b]) => (a === "" ? -1 : b === "" ? 1 : a.localeCompare(b)));
+  const orderedGroups = [...groups.entries()].sort(([a], [b]) => (a === "" ? -1 : b === "" ? 1 : a.localeCompare(b, "en", { numeric: true, sensitivity: "base" })));
 
   return (
     <SiteLayout active={category.label}>
-      <section className="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-12 md:px-12">
+      <section className="page-intro category-intro">
         <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">Blog</span>
-        <h2 className="text-3xl font-semibold text-slate-900">{category.label}</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-3xl font-semibold text-slate-100">{category.label}</h2>
+        <p className="text-sm text-slate-300">
           {category.description} · {posts.length} 篇
         </p>
       </section>
 
       <section className="mx-auto flex max-w-5xl flex-col gap-10 px-6 pt-10 md:px-12 min-h-[calc(100vh-300px)]">
         {posts.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-sm text-slate-600">
+          <div className="rounded-3xl border border-dashed border-slate-600 bg-slate-900/70 px-6 py-10 text-center text-sm text-slate-300">
             Under Construction :-)
           </div>
         ) : (
           orderedGroups.map(([series, list]) => (
             <div key={series || "_root"} className="space-y-4">
               {series && (
-                <h3 className="border-b border-slate-200 pb-2 text-xl font-bold text-slate-900">{series}</h3>
+                <h3 className="border-b border-slate-800 pb-2 text-xl font-bold text-slate-100">{series}</h3>
               )}
               <PostCardList posts={list} />
             </div>

@@ -1,136 +1,38 @@
 time: 2026/11/06
 
-- Tokenization 决定文本被切成哪些 token。
-- Embedding 把每个 token 转成一个向量。
 
-主线是：
+**Tokenization 是切分，Encoding 是编号，Embedding 是把编号映射成向量。** 在文本输入处理中，可以这样理解：
 
-Nonlinearity → Distributional semantics → Word2Vec / Skip-gram → Embedding evaluation → Tokenization → BPE
+|步骤|作用|示例|
+|---|---|---|
+|**Tokenization**|把文本切成 tokens|`"I love cats"` → `["I", "love", "cats"]`|
+|**Encoding**|将 tokens 转成 token IDs|→ `[12, 58, 306]`|
+|**Embedding**|根据 ID 查找对应的 learned vector|→ 每个 token 对应一个向量|
 
-## 第一章：再解释一次 nonlinearity 到底做了什么（第 5–10 页）
+注意 **Encoding 和 Embedding 不是一个意思**：ID 只是编号，embedding 才是模型学到的向量表示。
 
-### 1. 一个简单的 classification task
-
-假设每封邮件只有一个 feature：
-
-> 邮件中有多少个感叹号？
-
-不同邮件的 feature 可能是：
-
-- 普通通知：很少的感叹号。
-- Spam：中等数量的感叹号。
-- 朋友激动的消息：很多感叹号。
-
-这时，“感叹号越多，越可能是 Spam”未必成立。
-
-需要的关系可能是：
-
-> 中间范围是 Spam，两侧都不是。
-
-一个单调变化的 linear score 很难表达这个 pattern。
-
-### 2. 一个 ReLU neuron 提供一个 bend
-
-例如：
-
-$$
-h_1=\operatorname{ReLU}(x-2)
-$$
-
-当 input 小于等于 2 时，output 为 0；超过 2 后，output 开始 linear increase。
-
-它在 2 的位置产生一个 bend。
-
-但是，仅靠这一项，output 只能先保持不变，再单方向增加。
-
-### 3. 多个 ReLU neurons 可以组合出 bump
-
-定义：
-
-$$
-h_1=\operatorname{ReLU}(x-2)
-$$
-
-$$
-h_2=\operatorname{ReLU}(x-4)
-$$
-
-$$
-h_3=\operatorname{ReLU}(x-6)
-$$
-
-Output layer 将它们组合：
-
-$$
-s=h_1-2h_2+h_3
-$$
-
-分区间计算：
-
-| Input range | Output score |
-|---|---|
-| x ≤ 2 | 0 |
-| 2 < x ≤ 4 | x - 2 |
-| 4 < x ≤ 6 | 6 - x |
-| x > 6 | 0 |
-
-这就形成了一个 triangular bump：
-
-- 小 input：score 低。
-- 中间 input：score 高。
-- 大 input：score 又变低。
-
-配合适当 threshold，就可以识别中间范围。
-
-**Nonlinear activation 的作用，是让多个简单 units 组合出更复杂的 input–output relationship。**
-
-### 4. 如果去掉 ReLU？
-
-相同的 weights 得到：
-
-$$
-s=(x-2)-2(x-4)+(x-6)=0
-$$
-
-没有 activation，多个 affine functions 相加后仍然是 affine function。
-
-在这个例子里，甚至直接变成常数。
-
-相同 weights 搭配不同 activation functions，最终的 function shape 可以很不一样。
-![[Pasted image 20261104001855.png]]
+注意bpe 和 我们常规语境下的encoding 不一样
+- **BPE encoding**：应用学到的 merge rules，把文本切成最终 tokens。
+- **Token ID encoding**：把 tokens 转成对应的数字 IDs。
 
 
-## 第二章：为什么需要 learned word representations？（第 11–14 页）
+Words as Vectors
+![[Pasted image 20261120160602.png]]
+
+Tokenization
+![[Pasted image 20261120160618.png]]
+
+# 第一章：为什么需要 learned word representations？（第 11–14 页）
 
 ### 1. 传统方式：手工定义 meaning
+传统方法用 **WordNet** 等手工构建的 lexical resource 表示词义，例如：
 
-PPT 使用 WordNet 作为例子。
+- **Synonymy (同义词)**：car 与 automobile。
+- **Is-a relations**：mouse → rodent → animal。
 
-WordNet 是手工构建的 lexical resource，可以记录：
+但这种方法分类较粗、难以更新，也不直接提供连续的 **similarity score**，例如 good 与 great 有多接近。
 
-- Synonymy：car 与 automobile。
-- Is-a relations：mouse → rodent → animal。
-
-它把 words 及其 relations 组织起来。
-
-
-但是
-
-| Limitation                | 含义                                        |
-| ------------------------- | ----------------------------------------- |
-| Too coarse                | 放在相似类别里的词，实际用法可能不同                        |
-| Difficult to maintain     | 新词、新义不断出现，人工更新跟不上                         |
-| Limited graded similarity | 单纯的 graph links 不直接提供连续的 similarity score |
-
-例如：
-
-- good 和 great 有多接近？
-- good 和 fine 有多接近？
-- 新出现的 slang 应如何表示？
-
-我们希望 representations 能够从 data 学习，并表达不同程度的 similarity。
-
-注意，learned embeddings 也不会自动保持最新；它们仍然受 training corpus 和更新时间限制。
+因此，我们希望从 data 中学习 **word representations**，捕捉词的用法及不同程度的 similarity。不过，learned embeddings 也不会自动保持最新；它们仍然受 training corpus 和更新时间限制。
 
 ### 关键创新: 把 word 表示为 vector
 
@@ -175,25 +77,14 @@ PPT 用 good 与 bad 指向相反方向作示意。
 - a good movie
 - a bad movie
 
-因此：**Distributional similarity 不等于 synonymy，反义关系也不保证对应 opposite directions。**
+因此：<span style="color: #ff9933;">Distributional similarity 不等于 synonymy，反义关系也不保证对应 opposite directions。</span>
 
-## 第三章：Distributional semantics（第 15–20 页）
+# 第二章：Distributional semantics（第 15–20 页）
 
+核心假设: **出现在相似 contexts 中的 words，往往具有相近或相关的 meanings。**
 ### 1. 从 context 推断 meaning
 
-PPT 使用 kombucha 举例：
-
-> I had a glass of kombucha at the farmers market.
-
-> Children or pregnant women should not drink kombucha.
-
-即使不知道 kombucha 的定义，也可以从：
-
-- glass of
-- drink
-- 相关 contexts
-
-推测它属于某种 drink。
+PPT 使用 kombucha 举例, 即使不知道 **kombucha** 的含义，也能从 “a glass of kombucha” 和 “drink kombucha” 推测它是一种饮品。
 
 这就是 distributional semantics 的核心直觉：**Words that occur in similar contexts tend to have related meanings.**
 
@@ -215,7 +106,6 @@ PPT 使用 kombucha 举例：
 - Grammatical properties。
 - Register。
 
-这只是帮助理解的例子。
 
 ### 3. 实际 embedding dimensions 通常没有名字
 
@@ -253,19 +143,32 @@ $$
 
 
 
-## 第四章：Word2Vec 的 Skip-gram——通过预测 neighbors 学习 vectors（第 21–26 页）
+# 第四章：Word2Vec & Skip-gram  （第 21–26 页）
 
-### 1. 不依赖人工 semantic labels
 
-Word2Vec 从大量 raw text 中学习 vectors。
-
-**Skip-gram** 使用的 prediction task 是：
-
-> 给定 center word，预测它附近的 context words。
+**Skip-gram 是 Word2Vec 的一种训练方法：给它一个中心词，让它预测周围的词（context words），从而学到 word vectors。**
 
 Training targets 直接从 text 中构造，因此不需要人工标注的 meaning labels, 可以理解为 self-supervised learning。
 
-### 2. Sliding window 构造 training pairs
+可以理解为：
+
+One-hot input → Embedding lookup → Linear output scores → Softmax
+
+![[Pasted image 20261104013359.png]]
+
+
+Hidden representation 就是 center word 的  embedding，**没有 hidden nonlinear activation**。虽然前面的两步可以合并成一个 linear transformation，但保留两组 parameters，可以用低维 embeddings 表示 word–context 关系。
+
+**与前面“没有 nonlinearity，多层会 collapse”并不矛盾, 它的目标是学习 representations，不是依靠 deep nonlinear boundaries 完成任务。：
+- Collapse 讨论的是 function 表达形式。
+- Skip-gram 通过两个较小的 embedding tables 对 word-context score matrix 做 factorization。
+- 这种结构共享 parameters，并要求用低维 vectors 表示 word-context relations。
+
+
+
+
+
+### 1. Sliding window 构造 training pairs
 
 假设文本片段为：
 
@@ -300,10 +203,12 @@ Center 移动到 banking 后，又产生：
 
 一个 center 会产生多个 prediction targets。
 
-### 3. 每个 word 有两套 vectors
+
+
+
+### 2. 每个 word 有两套 vectors
 
 Skip-gram 通常为每个 word 学习：
-
 - Center vector：word 作为 center 时使用。
 - Context vector：word 作为 context 时使用。
 
@@ -317,101 +222,10 @@ $$
 u_w=\text{context vector}
 $$
 
-为什么分两套？
 
-因为“作为 input”与“作为 prediction target”是两个不同角色，model 使用两组 parameters 表示这两个角色。
+“作为 input”与“作为 prediction target”是两个不同角色，model 使用两组 parameters 表示这两个角色。
 
-### 4. 用 dot product 计算 score
-
-给定 center c，context candidate o 的 score：
-
-$$
-s_o=u_o^\top v_c
-$$
-
-然后对整个 vocabulary 应用 Softmax：
-
-$$
-P(o\mid c)
-=
-\frac{\exp(u_o^\top v_c)}
-{\sum_{w\in V}\exp(u_w^\top v_c)}
-$$
-
-这和前面的 multiclass classification 一样：
-
-- Input：center embedding。
-- Classes：vocabulary 中所有可能的 context words。
-- Output：各 context words 的 probabilities。
-
-### Skip-gram
-给你一个中心词，猜它附近出现了什么词
-
-![[Pasted image 20261104013359.png]]
-
-可以理解为：
-
-One-hot input → Embedding lookup → Linear output scores → Softmax
-
-Hidden representation 就是 center word 的 embedding。
-
-这里没有 hidden nonlinear activation。
-
-这与前面“没有 nonlinearity，多层会 collapse”并不矛盾：
-
-- Collapse 讨论的是 function 表达形式。
-- Skip-gram 通过两个较小的 embedding tables 对 word-context score matrix 做 factorization。
-- 这种结构共享 parameters，并要求用低维 vectors 表示 word-context relations。
-
-它的目标是学习 representations，不是依靠 deep nonlinear boundaries 完成任务。
-
-
-### 1. 一对 center–context 的 loss
-
-对于观察到的 pair：
-
-$$
-(c,o)
-$$
-
-希望提高真实 context word 的 probability：
-
-$$
-L_{c,o}=-\log P(o\mid c)
-$$
-
-例如：
-
-$$
-L=-\log P(\text{banking}\mid\text{into})
-$$
-
-### 2. 整个 corpus 的 objective
-
-假设 corpus 长度为 T，window radius 为 m：
-
-$$
-L(\theta)
-=
--\frac{1}{T}
-\sum_{t=1}^{T}
-\sum_{\substack{-m\leq j\leq m\\j\neq0}}
-\log P(w_{t+j}\mid w_t;\theta)
-$$
-
-这里仅包含没有越过 corpus boundaries 的有效 positions。
-
-含义是：
-
-1. 遍历每个 center position。
-2. 遍历 window 内的 context positions。
-3. 每个 pair 贡献一个 NLL term。
-
-Theta 包含两套 word vectors。
-
-### gradient
-
-#### Context vector 的
+#### Context vector 
 
 令 pw 表示 model 给 context candidate w 的 probability。
 
@@ -445,7 +259,7 @@ $$
 p_wv_c
 $$
 
-#### 4. Center vector
+#### Center vector
 
 Center vector 影响所有 output scores，因此要把路径 contributions 相加：
 
@@ -498,34 +312,109 @@ $$
 
 注意，center gradient 为零，不一定意味着所有 context gradients 都为零。
 
-### 5. 为什么 similar-context words 会有 related vectors？
 
-如果两个 center words 经常对应类似 context words，它们就会受到相似的 training signals。
+### 3. 用 dot product 计算 score
 
-为了预测相似的 context distributions，model 往往为它们学到相关的 representations。
+给定 center c，context candidate o 的 score：
 
-这就是 distributional semantics 如何变成具体的 optimization objective。
+$$
+s_o=u_o^\top v_c
+$$
 
-这里推导的是 full-Softmax Skip-gram；negative sampling 不在这份 PPT 的推导范围内。
+然后对整个 vocabulary 应用 Softmax：
 
-## 第六章：如何评价 embeddings？（第 28–29 页）
+$$
+P(o\mid c)
+=
+\frac{\exp(u_o^\top v_c)}
+{\sum_{w\in V}\exp(u_w^\top v_c)}
+$$
+
+这和前面的 multiclass classification 一样：
+
+- Input：center embedding。
+- Classes：vocabulary 中所有可能的 context words。
+- Output：各 context words 的 probabilities。
+
+
+
+### 4. 一对 center–context 的 loss
+
+对于观察到的 pair：
+
+$$
+(c,o)
+$$
+
+希望提高真实 context word 的 probability：
+
+$$
+L_{c,o}=-\log P(o\mid c)
+$$
+
+例如：
+
+$$
+L=-\log P(\text{banking}\mid\text{into})
+$$
+
+
+### 5. 整个 corpus 的 objective
+
+含义是：
+
+1. 遍历每个 center position。
+2. 遍历 window 内的 context positions。
+3. 每个 pair 贡献一个 NLL term。
+
+假设 corpus 长度为 T，window radius 为 m：
+
+$$
+L(\theta)
+=
+-\frac{1}{T}
+\sum_{t=1}^{T}
+\sum_{\substack{-m\leq j\leq m\\j\neq0}}
+\log P(w_{t+j}\mid w_t;\theta)
+$$
+
+这里仅包含没有越过 corpus boundaries 的有效 positions。
+
+Theta 包含两套 word vectors。
+
+
+### 为什么 similar-context words 会有 related vectors？
+
+可以用 `cat` 和 `dog` 理解：
+
+> I **feed** my **cat**.  
+> I **feed** my **dog**.
+
+它们经常出现在类似的 contexts 中，所以训练时，模型都需要做到：
+
+- 输入 `cat` 的 vector → 给 `feed` 较高的概率。
+- 输入 `dog` 的 vector → 也给 `feed` 较高的概率。
+
+**因为要预测的周围词相似，它们的 vectors 会受到类似的更新，往往变得相似。** 这需要大量 contexts 的共同作用，不是共享一个词就一定相似。
+
+“变成 optimization objective”就是：**通过最小化预测周围词的 loss，让 vectors 学到这些关系。**
+
+最后，**full-Softmax** 指每次预测都对**整个 vocabulary** 中的词计算分数，再用 Softmax 得到概率。
+
+
+
+# 第六章： embedding Evaluation（第 28–29 页）
 
 ### 1. Intrinsic evaluation
 
-直接检查 embedding space 的性质。
+直接检查 embedding space 的性质, 是否捕捉了词语的语义或语法关系。
 
 #### Nearest neighbors
 
-例如 great 附近可能出现：
-
-- excellent。
-- fantastic。
-- wonderful。
-
-检查这些 neighbors 是否符合预期。
+检查 vector 最接近的词是否在语义或用法上相关，例如 `great` 附近有 `excellent`。
 
 #### Word analogies
-
+检查 vector 运算能否找出对应的类比关系
 经典例子：
 
 $$
@@ -538,62 +427,34 @@ v_{\text{woman}}
 v_{\text{queen}}
 $$
 
-先计算 query vector：
-
-$$
-q=
-v_{\text{king}}
--
-v_{\text{man}}
-+
-v_{\text{woman}}
-$$
-
-再寻找与 q 的 cosine similarity 最大的 vocabulary word。
-
-通常会排除 query 中已有的 words。
-
-类似关系还包括：
-
-- walking → walked。
-- Japan → Tokyo。
+类似关系还包括：- walking → walked。- Japan → Tokyo。
 
 这些规律是可能观察到的 empirical patterns，不保证对所有 words 都成立。
 
 ### 2. Extrinsic evaluation
 
 把 embeddings 放进 downstream model，观察实际 task performance。
-
-例如：
-
-- Sentiment classification。
-- Spam classification。
-- 其他 NLP tasks。
-
 如果 embeddings 改善了 downstream accuracy，就说明它们对该 task 有帮助。
 
-### 3. 三种使用方式
+### 3. Embedding 三种使用方式
 
-| Strategy | Initialization | Training 时是否更新 embeddings？ |
-|---|---|---|
-| From scratch | Random | 更新 |
-| Frozen pretrained | Pretrained | 不更新 |
-| Fine-tuned pretrained | Pretrained | 更新 |
+| Strategy              | Initialization | Training 时是否更新 embeddings？ |
+| --------------------- | -------------- | -------------------------- |
+| From scratch          | Random         | 更新                         |
+| Frozen pretrained     | Pretrained     | 不更新                        |
+| Fine-tuned pretrained | Pretrained     | 更新                         |
 
 选择取决于 task data、computational budget 和 domain match。
 
 Pretrained embeddings 可以把大 corpus 中学到的信息带入较小的 labeled dataset，但不保证所有情况下都优于 from-scratch training。
 
-## 第七章：GloVe——从 co-occurrence counts 学习 vectors（第 30 页）
+# 第七章：GloVe（第 30 页）
 
-Word2Vec 的思路：
 
-> 从 sliding windows 构造 pairs，执行 prediction。
-
-GloVe 的思路：
-
-> 先统计 word co-occurrence，再用 vectors 拟合这些 statistics。
-
+| 方法                           | 怎么学习                                                                |
+| ---------------------------- | ------------------------------------------------------------------- |
+| **Word2Vec（以 Skip-gram 为例）** | 用中心词预测周围词，通过减小 prediction loss 学习 vectors。                          |
+| **GloVe**                    | 先统计词对在 context windows 中共同出现的次数（co-occurrence），再训练 vectors 拟合这些统计量。 |
 PPT 给出的简化关系：
 
 $$
@@ -616,18 +477,17 @@ $$
 - 利用 word-context relations。
 - 输出 dense word vectors。
 
-它们的差别主要在于如何组织 statistics 和 training objective。
 
-## 第八章：Tokenization——到底什么算一个 token？（第 31–35 页）
 
+# 第八章：Tokenization（第 31–35 页）
+
+
+**Tokenization** 就是把文本拆分成模型处理的基本单位（tokens），例如 words、subwords 或 characters。决定哪些单位拥有独立 embeddings，以及哪些 occurrences 共享 parameters。
 
 基本流程：
-
 Text → Tokens → Token IDs → Embedding lookup
 
-例如：
-
-> the movie was great
+例如：the movie was great
 
 可能变成：
 
@@ -640,9 +500,16 @@ Text → Tokens → Token IDs → Embedding lookup
 
 Token ID 用来选择 embedding matrix 中对应的 row。
 
-因此：
 
-> Tokenizer 决定哪些单位拥有独立 embeddings，以及哪些 occurrences 共享 parameters。
+## Tokenization 分类
+
+| Method          | Vocabulary | Sequence length | 主要问题                                     |
+| --------------- | ---------- | --------------- | ---------------------------------------- |
+| Word-level      | 通常较大       | 较短              | Rare words、OOV                           |
+| Character-level | 通常较小       | 较长              | 单位过细                                     |
+| Subword-level   | 折中         | 折中              | Segmentation 不一定符合 linguistic boundaries |
+
+现代 language models 广泛使用 subword 或 byte-based tokenization。
 
 ### 2. Word-level tokenization
 
@@ -702,17 +569,11 @@ Token ID 用来选择 embedding matrix 中对应的 row。
 
 具体 segmentation 取决于学到的 tokenizer，并不保证一定符合 morphology。
 
-| Method | Vocabulary | Sequence length | 主要问题 |
-|---|---|---|---|
-| Word-level | 通常较大 | 较短 | Rare words、OOV |
-| Character-level | 通常较小 | 较长 | 单位过细 |
-| Subword-level | 折中 | 折中 | Segmentation 不一定符合 linguistic boundaries |
 
-现代 language models 广泛使用 subword 或 byte-based tokenization。
 
-## 第九章：BPE 的 training algorithm（第 36、39 页）
+# 第九章：Byte Pair Encoding (BPE)（第 36、39 页）
 
-BPE 的全称是 Byte Pair Encoding。
+**Byte Pair Encoding（BPE）** 是一种 subword tokenization 方法，通过反复合并最频繁出现的相邻 token pair，逐步构建 vocabulary。
 
 PPT 使用 character-based example：
 
@@ -722,7 +583,9 @@ PPT 使用 character-based example：
 4. 在更新后的 segmentation 上重新统计。
 5. 重复，直到达到 vocabulary size 等 stopping criterion。
 
-### 1. Training corpus
+## Training
+
+先把 words 拆成 characters，按词频统计相邻 token pairs，每次合并频率最高的一对并重新统计，直到达到目标 vocabulary size 或 merge 次数。
 
 | Word | Frequency |
 |---|---:|
@@ -740,63 +603,8 @@ PPT 使用 character-based example：
 - b u n。
 - h u g s。
 
-### 2. 第一次 merge：u + g
 
-它出现在：
-
-- hug：10 次。
-- pug：5 次。
-- hugs：5 次。
-
-总 frequency：
-
-$$
-10+5+5=20
-$$
-
-因此 merge：
-
-u + g → ug
-
-更新后：
-
-- h ug。
-- p ug。
-- p u n。
-- b u n。
-- h ug s。
-
-### 3. 第二次 merge：u + n
-
-Frequency：
-
-$$
-12+4=16
-$$
-
-Merge：
-
-u + n → un
-
-更新后：
-
-- h ug。
-- p ug。
-- p un。
-- b un。
-- h ug s。
-
-### 4. 第三次 merge：h + ug
-
-Frequency：
-
-$$
-10+5=15
-$$
-
-Merge：
-
-h + ug → hug
+本例依次合并：`u + g → ug`（20 次）、`u + n → un`（16 次）、`h + ug → hug`（15 次）。
 
 最终例子中新增的 tokens 是：
 
@@ -808,7 +616,9 @@ h + ug → hug
 
 而且每次 merge 后，要根据新的 symbol sequence 重新统计。
 
-## 第十章：BPE 如何 tokenize 新文本？（第 37 页）
+## BPE 如何 tokenize 新文本？（第 37 页）
+
+**Tokenize 新文本：**先拆成 characters，再反复应用当前可用且 training rank 最早的 merge，不重新统计频率。
 
 假设学到的 merge ranks 是：
 
@@ -816,66 +626,26 @@ h + ug → hug
 2. u + n → un。
 3. h + ug → hug。
 
-现在遇到 training 中没有出现过的 word：
+现在遇到 training 中没有出现过的 word：unhug
 
-> unhug
+过程: `unhug` → `u n h u g` → `u n h ug` → `un h ug` → **`un hug`**。
 
-初始拆成：
 
-u n h u g
+## Training frequency vs Encoding rank
 
-### Step 1
+Training 时：根据 corpus frequency 学习 merge rules。
 
-当前可 merge：
+统计当前相邻 token pair 在 corpus 中出现的次数，每轮合并**频率最高**的一对，并重新统计。
 
-- u + g，rank 1。
-- u + n，rank 2。
 
-先选 rank 更早的：
-
-u n h ug
-
-### Step 2
-
-现在可 merge：
-
-- u + n，rank 2。
-- h + ug，rank 3。
-
-先 merge：
-
-un h ug
-
-### Step 3
-
-继续 merge：
-
-un hug
-
-没有其他适用 merge，结束。
-
-最终 tokens：
-
-- un。
-- hug。
-
-### 最重要的区别
-
-Training 时：
-
-> 根据 corpus frequency 学习 merge rules。
-
-Encoding 时：
-
-> 使用已经固定的 merge ranks，决定新文本如何 segmentation。
-
-Encoding 不会重新根据当前句子统计 frequency、重新训练 tokenizer。
+Encoding 时： 使用已经固定的 training 学到的 merge ranks，决定新文本如何 segmentation。优先执行**当前可用且 rank 最早**的合并，不重新统计频率。
 
 另外，只有 vocabulary list 还不够，merge ranks 也是 tokenizer 的组成部分。
-
 BPE 不能简单等同于从左到右选择 longest matching token。
 
-## 第十一章：为什么 tokenizer 会影响 model capability？（第 38–40 页）
+
+
+# 第十一章：为什么 tokenizer 会影响 model capability？（第 38–40 页）
 
 ### 1. Context budget 按 tokens 计算
 
@@ -886,7 +656,6 @@ BPE 不能简单等同于从左到右选择 longest matching token。
 - 会占用更多 context budget。
 - 同样长度的 context 能容纳的代码更少。
 
-PPT 使用历史 tokenizer 的截图展示这种差异。
 
 ### 2. Numbers 的 segmentation 会影响 arithmetic
 
@@ -916,33 +685,15 @@ Byte-level tokenization 可以通过 bytes 覆盖任意 UTF-8 text。
 
 并不是所有 LLM 都先运行 Word2Vec。
 
-## 本节课与 DAN 的联系
 
-上一节课的 DAN：
 
-Tokens → Embeddings → Average → FFN → Classification
 
-这一节课补充了前面两个环节：
 
-| Question            | 本节课的回答                                               |
-| ------------------- | ---------------------------------------------------- |
-| Tokens 怎么来？         | Tokenization，例如 BPE                                  |
-| Embeddings 怎么来？     | 可以从 context prediction 学习，例如 Skip-gram               |
-| 如何使用 embeddings？    | From scratch、frozen pretrained、fine-tuned pretrained |
-| 如何判断 embeddings 有用？ | Intrinsic 与 extrinsic evaluation                     |
+# 最需要掌握的七个问题
 
-需要区分：
-
-- Tokenizer：决定 text 被拆成哪些 discrete units。
-- Embedding matrix：为这些 units 提供 trainable vectors。
-- Downstream model：利用这些 vectors 完成任务。
-
-## 最需要掌握的七个问题
-
-1. 多个 ReLU neurons 如何组合出 nonlinear function？
-2. Distributional semantics 的核心假设是什么？
-3. Skip-gram 如何从 sliding window 构造 training pairs？
-4. 为什么每个 word 有 center vector 和 context vector？
-5. Center gradient 中的 observed context 和 expected context 分别是什么？
-6. Word-level、character-level、subword-level tokenization 有什么 trade-offs？
-7. BPE training 的 frequency 与 encoding 的 merge rank 有什么区别？
+1. Distributional semantics 的核心假设是什么？
+2. Skip-gram 如何从 sliding window 构造 training pairs？
+3. 为什么每个 word 有 center vector 和 context vector？
+4. Center gradient 中的 observed context 和 expected context 分别是什么？
+5. Word-level、character-level、subword-level tokenization 有什么 trade-offs？
+6. BPE training 的 frequency 与 encoding 的 merge rank 有什么区别？

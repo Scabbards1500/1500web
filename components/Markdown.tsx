@@ -6,6 +6,7 @@ import remarkCjkFriendly from "remark-cjk-friendly";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
+import rehypeNoteHtml from "@/lib/rehype-note-html";
 import { normalizeObsidian } from "@/lib/markdown";
 import ArticleImage from "./ArticleImage";
 
@@ -25,13 +26,14 @@ function resolveAsset(src: string, assetDir: string): string {
 
 export default function Markdown({ content, assetDir }: MarkdownProps) {
   return (
-    <div className="prose prose-slate max-w-none prose-headings:scroll-mt-24 prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-code:before:content-none prose-code:after:content-none prose-img:my-0">
+    <div className="prose prose-slate prose-invert max-w-none prose-headings:scroll-mt-24 prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-code:before:content-none prose-code:after:content-none prose-img:my-0">
       <ReactMarkdown
         // remarkBreaks：Obsidian 默认把单个换行当作换行，这里保持一致
         // remarkCjkFriendly：让 `**粗体)**中文` 这类紧贴中文的强调也能生效
         remarkPlugins={[remarkGfm, remarkCjkFriendly, remarkMath, remarkBreaks]}
-        // rehypeSlug 放在最前，保证标题 id 与 extractToc 生成的一致
-        rehypePlugins={[rehypeSlug, rehypeKatex, [rehypeHighlight, { detect: false, ignoreMissing: true }]]}
+        // Parse embedded note HTML before heading IDs, math, and highlighting.
+        rehypePlugins={[rehypeNoteHtml, rehypeSlug, rehypeKatex, [rehypeHighlight, { detect: false, ignoreMissing: true }]]}
+        disallowedElements={["script", "iframe", "object", "embed", "style", "link", "meta", "base"]}
         components={{
           img: ({ src, alt }) => (
             <ArticleImage src={typeof src === "string" ? resolveAsset(src, assetDir) : undefined} alt={alt} />

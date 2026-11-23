@@ -146,12 +146,14 @@ function readCategory(category: Category): Post[] {
     };
     if (header.abstract) post.abstract = header.abstract;
     const date = normalizeDate(header.time ?? header.date);
-    if (date) post.date = date;
+    if (date && category.slug !== "course") post.date = date;
     if (header.tags) post.tags = header.tags.split(/[;,，]/).map((t) => t.trim()).filter(Boolean);
     return [post];
   });
 
-  return sortByDate(posts);
+  return category.slug === "course"
+    ? posts.sort((a, b) => a.title.localeCompare(b.title, "en", { numeric: true, sensitivity: "base" }))
+    : sortByDate(posts);
 }
 
 export function getCategory(slug: string): Category | undefined {

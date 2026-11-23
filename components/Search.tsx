@@ -111,14 +111,14 @@ export function SearchBox() {
   return (
     <div
       className={`flex items-center rounded-md border transition-colors duration-300 ${
-        open ? "border-slate-300 bg-white shadow-sm" : "border-transparent"
+        open ? "border-slate-600 bg-slate-900 shadow-sm" : "border-transparent"
       }`}
     >
       <button
         type="button"
         onClick={onIconClick}
         aria-label={open ? "搜索" : "展开搜索"}
-        className="rounded-md px-3 py-2 text-slate-500 transition-colors hover:text-slate-900"
+        className="rounded-md px-3 py-2 text-slate-400 transition-colors hover:text-slate-100"
       >
         <SearchIcon className="h-4 w-4" />
       </button>
@@ -145,7 +145,7 @@ export function SearchBox() {
           tabIndex={open ? 0 : -1}
           placeholder="关键词或正则，回车搜索"
           spellCheck={false}
-          className="w-full bg-transparent py-1.5 pr-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none placeholder:text-slate-400"
+          className="w-full bg-transparent py-1.5 pr-3 text-sm font-normal normal-case tracking-normal text-slate-100 outline-none placeholder:text-slate-400"
         />
       </div>
     </div>
@@ -160,7 +160,7 @@ function Highlight({ text, ranges }: { text: string; ranges: Range[] }) {
     if (start < cursor) return;
     if (start > cursor) parts.push(<Fragment key={`t${index}`}>{text.slice(cursor, start)}</Fragment>);
     parts.push(
-      <mark key={`m${index}`} className="rounded bg-sky-100 px-0.5 font-medium text-sky-700">
+      <mark key={`m${index}`} className="rounded bg-sky-900/60 px-0.5 font-medium text-sky-300">
         {text.slice(start, end)}
       </mark>,
     );
@@ -176,14 +176,14 @@ function SearchResults({ query }: { query: string }) {
 
   return (
     <section className="mx-auto max-w-5xl px-6 pt-12 md:px-12">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
           <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">Search</span>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-            “<span className="text-sky-700">{query}</span>”
+          <h2 className="mt-2 text-2xl font-semibold text-slate-100">
+            “<span className="text-sky-300">{query}</span>”
           </h2>
           {outcome && (
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-400">
               {outcome.results.length} 篇相关文章
               {outcome.usedRegex && " · 已同时按正则匹配"}
             </p>
@@ -192,14 +192,14 @@ function SearchResults({ query }: { query: string }) {
         <button
           type="button"
           onClick={clear}
-          className="rounded-full border border-slate-300 px-3 py-1 text-sm text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+          className="rounded-full border border-slate-600 px-3 py-1 text-sm text-slate-300 transition hover:border-sky-400 hover:text-slate-100"
         >
           × 清除搜索
         </button>
       </div>
 
       {loadError ? (
-        <p className="py-12 text-center text-sm text-red-600">搜索索引加载失败，请刷新重试</p>
+        <p className="py-12 text-center text-sm text-red-400">搜索索引加载失败，请刷新重试</p>
       ) : !outcome ? (
         <p className="py-12 text-center text-sm text-slate-400">正在加载索引…</p>
       ) : outcome.results.length === 0 ? (
@@ -207,10 +207,10 @@ function SearchResults({ query }: { query: string }) {
       ) : (
         <ul className="mt-6 flex flex-col gap-4">
           {outcome.results.map((result) => (
-            <li key={result.doc.href} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <li key={result.doc.href} className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
               <a href={result.doc.href} target="_blank" rel="noopener noreferrer" className="group block">
                 <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-lg font-semibold text-slate-900 group-hover:underline">
+                  <h3 className="text-lg font-semibold text-slate-100 group-hover:underline">
                     <Highlight text={result.doc.title} ranges={result.titleRanges} />
                   </h3>
                   {result.bodyCount > 0 && <span className="shrink-0 text-xs text-slate-400">正文 {result.bodyCount} 处</span>}
@@ -221,13 +221,13 @@ function SearchResults({ query }: { query: string }) {
                   {result.doc.date && ` · ${result.doc.date.replace(/-/g, ".")}`}
                 </p>
                 {result.abstractRanges.length > 0 && (
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm text-slate-300">
                     <Highlight text={result.doc.abstract} ranges={result.abstractRanges} />
                   </p>
                 )}
               </a>
               {result.snippets.length > 0 && (
-                <div className="mt-3 space-y-1 border-t border-slate-100 pt-3">
+                <div className="mt-3 space-y-1 border-t border-slate-800 pt-3">
                   {result.snippets.map((snippet, index) => (
                     <a
                       key={index}
@@ -235,7 +235,7 @@ function SearchResults({ query }: { query: string }) {
                       href={textFragmentHref(result.doc.href, snippet.match)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-md px-2 py-1 text-sm leading-6 text-slate-600 transition hover:bg-slate-50"
+                      className="block rounded-md px-2 py-1 text-sm leading-6 text-slate-300 transition hover:bg-slate-950"
                     >
                       {snippet.leadingEllipsis && "…"}
                       <Highlight text={snippet.text} ranges={snippet.ranges} />

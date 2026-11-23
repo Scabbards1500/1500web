@@ -1,12 +1,5 @@
 time: 2026/11/03
 
-前两节课解决了两个问题：
-
-- Learning Part I：应该 optimize 什么？——定义 loss。
-- Learning Part II：如何 optimize？——计算 gradients，更新 parameters。
-
-这节课进一步问：
-
 > 如果 linear classifier 的表达能力不够，应该换成什么 model？
 
 答案是 Feedforward Neural Network（FFN）。
@@ -92,36 +85,17 @@ Sigmoid 把任意 real-valued score 转换到 0 和 1 之间，因此可以用�
 |**Sigmoid**|把一个 logit 映射到 \((0,1)\)。如果对多个 logit 分别用 Sigmoid，结果不要求加起来等于 1|**Binary Classification** 或 **Multi-label Classification**|
 |**Softmax**|把一组 logits 转成一组概率，所有概率加起来等于 1|**Multi-class Classification**，每个样本只属于一个类别|
 
-### 4. 为什么 single Sigmoid neuron 的 decision boundary 仍然是 linear？
+<span style="color: #ff9933;">注意，single Sigmoid neuron 的 decision boundary 仍然是 linear</span>
+
 ![[Pasted image 20261103204657.png]]
 
-Sigmoid 虽然是 nonlinear function，但它 strictly increasing：
-
-$$
-\sigma(z)\geq0.5
-\iff
-z\geq0
-$$
-
-所以：
-
-$$
-\sigma(w^\top x+b)\geq0.5
-\iff
-w^\top x+b\geq0
-$$
-
-Decision boundary 仍然是：
-
-$$
-w^\top x+b=0
-$$
-
-二维中是直线，高维中是 hyperplane。
+Sigmoid 虽然是 nonlinear，但 $\sigma(z)\geq0.5 \iff z\geq0$，所以对 linear score 使用 Sigmoid 后，decision boundary 仍是 $w^\top x+b=0$；
 
 **给一个 linear score 加上 Sigmoid，并不会自动产生 nonlinear decision boundary。**
 
 要提高表达能力，需要组合多个 neurons 和 layers。
+
+
 
 ## 第二章：从多个 neurons 到 multilayer network（第 11–17 页）
 
@@ -222,51 +196,15 @@ $$
 
 最后的 classifier 对最后一层 hidden representation 是 linear 的，但对原始 input 可以是 nonlinear 的。
 
-## 第三章：为什么一定需要 nonlinearity？（第 18–19 页）
+### 5. 为什么一定需要 nonlinearity？（第 18–19 页）
 
-### 1. 没有 nonlinear activation，多层会 collapse 成一层
-
-考虑两个没有 activation 的 layers：
+没有 nonlinear activation，多层仍等价于一层：
 
 $$
-h=W_1x+b_1
+s=W_2(W_1x+b_1)+b_2=Wx+b
 $$
 
-$$
-s=W_2h+b_2
-$$
-
-代入：
-
-$$
-s=W_2(W_1x+b_1)+b_2
-$$
-
-整理：
-
-$$
-s=(W_2W_1)x+(W_2b_1+b_2)
-$$
-
-定义：
-
-$$
-W=W_2W_1
-$$
-
-$$
-b=W_2b_1+b_2
-$$
-
-就得到：
-
-$$
-s=Wx+b
-$$
-
-所以，即使叠很多 layers，没有 nonlinear activation，最终仍然只是一个 affine transformation。
-
-对于 classification，表达的仍然是 linear decision boundary。
+因此，堆叠层数无法突破 linear decision boundary 的限制。加入 nonlinear activation 后，hidden layers 可以重新组织 representation，让原本无法线性分开的类别在新空间中变得 linearly separable。
 
 形象化: 
 ![[Pasted image 20261103210633.png]]
@@ -274,19 +212,24 @@ $$
 - 无法用一条直线将它们分开。
 - 经过 nonlinear hidden transformation 后，两类在新的 representation space 中可以用直线分开。
 
-可以理解为 Hidden layers 负责重新组织 representation，让最后的 linear classifier 更容易完成任务。
 
 
 
 
-
-## 第四章：常见 activation functions（第 20–21 页）
+## 第三章：常见 activation functions（第 20–21 页）
 
 这张图同时画出了 activation 和对应的 derivative。理解 derivative 很重要，因为 backpropagation 会沿路径乘上这些 derivatives。
 ![[Pasted image 20261103210758.png]]
 
 
 ![[Pasted image 20261103210838.png]]
+
+用法：
+- **ReLU：常用于 hidden layers**，帮助学习 nonlinear features；计算简单，正数区梯度为 1，较少出现 Sigmoid 的饱和问题。
+- **Sigmoid：常用于 binary classification 的输出层**，把 score 转为 \((0,1)\) 的概率；也用于 multi-label classification，为每个标签分别输出概率。
+
+**典型搭配：hidden layers 用 ReLU → 最后一个输出用 Sigmoid。** 如果是多个互斥类别的分类，输出层通常用 **Softmax**。（**可多选用 Sigmoid，多类单选用 Softmax；二分类通常用一个 Sigmoid 输出。**）
+
 ### 1. Sigmoid
 
 $$
@@ -334,7 +277,6 @@ g(z)=\max(0,z)
 $$
 
 当 z 大于 0 时：$g'(z)=1$
-
 当 z 小于 0 时：$g'(z)=0$
 
 特点：
@@ -371,7 +313,7 @@ PPT 将 GELU 列为 Transformers 中常见的 activation。
 
 
 
-## 第五章：Forward pass 与代码对应关系（第 22–23 页）
+## 第四章：Forward pass 与代码对应关系（第 22–23 页）
 
 PPT 使用一个 network：
 
@@ -420,7 +362,7 @@ model = nn.Sequential(
 
 对于 multiclass classification，最后一层通常输出 K 个 logits，K 是 class 数量。
 
-## 第六章：Neural network 如何通过 backpropagation 学习？（第 24–35 页）
+## 第五章：Neural network 如何通过 backpropagation 学习？（第 24–35 页）
 
 ### 1. Loss 没变，score function 变了
 
@@ -667,31 +609,19 @@ $$
 
 ## 第七章：Model capacity、overfitting 与 regularization（第 36–39 页）
 
-### 1. Neural network 的 loss landscape 更复杂
+### 1. Neural network capacity 
 
-Linear classifier 的直观图像比较简单。
+Neural network 的 capacity 更复杂， Linear classifier 的直观图像比较简单。
 
 Neural network 中，parameters 相互作用，loss landscape 通常是 nonconvex 的，可能有不同的 valleys、saddle points 等。
 
-PPT 强调，large networks 往往 overparameterized，可能存在许多表现良好的 solutions。
+large networks 往往 overparameterized，可能存在许多表现良好的 solutions，但这并不意味着任意 initialization 都保证找到同样好的结果。
 
-但这并不意味着任意 initialization 都保证找到同样好的结果。
 
-### 2. 更多 neurons 带来更多 capacity
+第 37 页比较了不同数量的 hidden neurons， 更多 neurons 带来更多 capacity。
+更多 capacity 可以帮助学习复杂 patterns，也可能让模型直接 memorize training samples。所以 <span style="color: #66ccff;">Training accuracy 高，不代表 generalization 一定好。</span>
 
-第 37 页比较了不同数量的 hidden neurons：
 
-| Hidden neurons | 图中表现 |
-|---|---|
-| 3 | Decision boundary 比较简单 |
-| 6 | 能表达更多结构 |
-| 20 | 在个别 training points 周围形成小块区域 |
-
-更多 capacity 可以帮助学习复杂 patterns，也可能让模型直接 memorize training samples。
-
-因此：
-
-> Training accuracy 高，不代表 generalization 一定好。
 
 ### 3. L2 regularization
 
@@ -742,15 +672,15 @@ PyTorch 默认使用 inverted dropout：
 - Training 时对保留的 activations 乘以 1/(1-p)。
 - Evaluation 时不再进行这种随机屏蔽或 scaling。
 
-## 第八章：Deep Averaging Network——PA1 的核心 architecture（第 40–42 页）
+## 第八章：Deep Averaging Network (第 40–42 页）
+
+Deep Averaging Network，简称 DAN，是一个简单的 text classification model。将一句话中所有词的词向量取平均，再送入多层前馈神经网络进行分类，不考虑词序。
+
+基本流程：Words → Embeddings → Average pooling → FFN → Class logits
 
 ![[Pasted image 20261103211816.png]]
 
-Deep Averaging Network，简称 DAN，是一个简单的 text classification model。
 
-基本流程：
-
-Words → Embeddings → Average pooling → FFN → Class logits
 
 ### 1. 每个 word 对应一个 embedding
 
@@ -830,17 +760,6 @@ pros
 cons
 忽略 word order, Average pooling 对 word order 不敏感。
 
-例如：
-
-> dog bites man
-
-和：
-
-> man bites dog
-
-如果使用相同的 word embeddings，平均结果相同。
-
-无论后面的 FFN 多深，都无法从相同的 averaged representation 中恢复已经丢失的 order information。
 
 **DAN 的能力同时取决于 embeddings 和 FFN，但受到 averaging representation 的限制。**
 
@@ -886,6 +805,8 @@ Warmup 表示从较小的 learning rate 开始，逐渐增大，再进入 decay�
 
 ## 第十章：本节课与整个 text classification pipeline 的联系（第 48 页）
 
+从手工固定的 features 加 linear classifier，走向由 hidden layers 学习 representations 的 neural network。但 model 只能利用 input representation 中保留的信息。
+
 目前已经学到：
 
 Text → Representation → Model → Logits → Probabilities → Loss
@@ -894,21 +815,17 @@ Training 时再加入：
 
 Loss → Backpropagation → Gradients → Optimizer update
 
-| Component | 已介绍的方法 |
-|---|---|
-| Representation | BoW、word embeddings、averaged embeddings |
-| Model | Linear classifier、FFN、DAN |
-| Probability mapping | Sigmoid、Softmax |
-| Loss | NLL、cross-entropy |
-| Gradient computation | Backpropagation、autograd |
-| Parameter update | Gradient descent 等 optimizers |
-| Generalization control | L2 regularization、Dropout |
+| Component              | 已介绍的方法                                  |
+| ---------------------- | --------------------------------------- |
+| Representation         | BoW、word embeddings、averaged embeddings |
+| Model                  | Linear classifier、FFN、DAN               |
+| Probability mapping    | Sigmoid、Softmax                         |
+| Loss                   | NLL、cross-entropy                       |
+| Gradient computation   | Backpropagation、autograd                |
+| Parameter update       | Gradient descent 等 optimizers           |
+| Generalization control | L2 regularization、Dropout               |
 
-这一节最重要的变化是：
 
-> 从手工固定的 features 加 linear classifier，走向由 hidden layers 学习 representations 的 neural network。
-
-但 model 只能利用 input representation 中保留的信息。
 
 
 ## 最需要掌握的六个问题
@@ -916,6 +833,6 @@ Loss → Backpropagation → Gradients → Optimizer update
 1. 为什么 single Sigmoid neuron 的 decision boundary 仍然是 linear？
 2. 为什么没有 nonlinear activation 的多层 network 会 collapse 成一层？
 3. 一个 layer 的 weight matrix，各个 dimensions 表示什么？
-4. Backpropagation 为什么沿路径乘 derivatives、在分支处相加？
+4. <span style="color: red;">Backpropagation </span>为什么沿路径乘 derivatives、在分支处相加？
 5. Dropout 在 training 和 evaluation 时有什么区别？
 6. DAN 如何从 variable-length text 得到 fixed-size representation，又丢失了什么信息？

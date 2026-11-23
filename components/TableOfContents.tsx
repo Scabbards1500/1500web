@@ -16,11 +16,11 @@ const ACTIVE_OFFSET = 120;
 
 // 按相对层级（0 = 文章里最高一级标题）区分字号、字重和颜色
 const LEVEL_STYLES = [
-  "py-1.5 text-[15px] font-semibold text-slate-900",
-  "py-1 text-sm font-medium text-slate-600",
-  "py-1 text-[13px] text-slate-500",
-  "py-0.5 text-xs text-slate-500",
-  "py-0.5 text-xs text-slate-500",
+  "py-1.5 text-[15px] font-semibold text-slate-100",
+  "py-1 text-sm font-medium text-slate-300",
+  "py-1 text-[13px] text-slate-400",
+  "py-0.5 text-xs text-slate-400",
+  "py-0.5 text-xs text-slate-400",
 ];
 
 export default function TableOfContents({ items, title, backHref, backLabel }: TableOfContentsProps) {
@@ -92,16 +92,16 @@ export default function TableOfContents({ items, title, backHref, backLabel }: T
 
   return (
     <div className="flex flex-col px-6 py-6 md:h-full md:py-10">
-      <Link href={backHref} className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400 transition hover:text-slate-900">
+      <Link href={backHref} className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400 transition hover:text-slate-100">
         ← {backLabel}
       </Link>
-      <p className="mt-4 text-base font-semibold leading-snug text-slate-900">{title}</p>
+      <p className="mt-4 text-base font-semibold leading-snug text-slate-100">{title}</p>
 
       {items.length > 0 && (
         <button
           type="button"
           onClick={() => setMobileOpen((open) => !open)}
-          className="mt-4 self-start text-xs font-medium text-slate-500 hover:text-slate-900 md:hidden"
+          className="mt-4 self-start text-xs font-medium text-slate-400 hover:text-slate-100 md:hidden"
         >
           {mobileOpen ? "收起章节 ▴" : "展开章节 ▾"}
         </button>
@@ -109,12 +109,12 @@ export default function TableOfContents({ items, title, backHref, backLabel }: T
 
       <div
         ref={listRef}
-        className={`${mobileOpen ? "block" : "hidden"} toc-scroll mt-4 max-h-[60vh] overflow-y-auto border-t border-slate-200 pt-4 md:mt-6 md:block md:max-h-none md:min-h-0 md:flex-1`}
+        className={`${mobileOpen ? "block" : "hidden"} toc-scroll mt-4 max-h-[60vh] overflow-y-auto border-t border-slate-800 pt-4 md:mt-6 md:block md:max-h-none md:min-h-0 md:flex-1`}
       >
         {items.length === 0 ? (
           <p className="text-sm text-slate-400">本文没有章节标题</p>
         ) : (
-          <ul className="border-l border-slate-200">
+          <ul className="border-l border-slate-800">
             {items.map((item) => {
               const active = item.id === activeId;
               const depth = Math.min(item.level - baseLevel, LEVEL_STYLES.length - 1);
@@ -127,8 +127,8 @@ export default function TableOfContents({ items, title, backHref, backLabel }: T
                     style={{ paddingLeft: `${depth * 18 + 14}px` }}
                     className={`-ml-px block border-l-2 pr-2 leading-snug transition-colors ${LEVEL_STYLES[depth]} ${
                       active
-                        ? "border-sky-600 text-sky-700!"
-                        : "border-transparent hover:border-slate-300 hover:text-slate-900!"
+                        ? "border-sky-600 text-sky-300!"
+                        : "border-transparent hover:border-slate-600 hover:text-slate-100!"
                     }`}
                   >
                     {item.text}
@@ -143,7 +143,7 @@ export default function TableOfContents({ items, title, backHref, backLabel }: T
       <button
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="mt-4 hidden self-start text-xs font-medium text-slate-400 transition hover:text-slate-900 md:block"
+        className="mt-4 hidden self-start text-xs font-medium text-slate-400 transition hover:text-slate-100 md:block"
       >
         ↑ 回到顶部
       </button>
